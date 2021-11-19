@@ -1,6 +1,7 @@
 const path = require('path');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 module.exports = {
     mode: "development",
     entry: path.resolve(__dirname, "./src/main.js"),
@@ -16,7 +17,8 @@ module.exports = {
     devServer: {
         open: true,
         port: 10086,
-        historyApiFallback: true
+        historyApiFallback: true,
+        contentBase: path.resolve(__dirname, './public')
     },
     module: {
         rules: [
@@ -28,6 +30,11 @@ module.exports = {
                         preserveWhitespace: false
                     }
                 }
+            },
+            {
+                test: /\.js$/,
+                enforce: "pre",
+                use: ["source-map-loader"],
             },
             {
                 test: /\.m?jsx?$/,
@@ -56,6 +63,9 @@ module.exports = {
             }
         ]
     },
+    optimization: {
+        moduleIds:'named'
+    },
     plugins: [
         new VueLoaderPlugin(),
         new HtmlWebpackPlugin({
@@ -63,5 +73,8 @@ module.exports = {
             template: path.resolve(__dirname, './public/index.html'),
             title: 'custom arcgis layer'
         }),
+/*        new BundleAnalyzerPlugin({
+            analyzerMode: 'static'
+        })*/
     ]
 }

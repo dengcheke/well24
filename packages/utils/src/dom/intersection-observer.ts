@@ -1,14 +1,23 @@
-import 'intersection-observer';
 type IntersectCallback = (entry: IntersectionObserverEntry) => void;
 type IntersectionMapObj = {
     cbs: IntersectCallback[],
     io: IntersectionObserver
 }
 
-const ioMap = new WeakMap<Element, IntersectionMapObj>();
+const ioMap = /*#__PURE__*/new WeakMap<Element, IntersectionMapObj>();
+
+function checkState(){
+    if(!window.IntersectionObserver)
+        throw new Error(`missing package [intersection-observer],\n`+
+        `install it: "npm i intersection-observer --save"\n`+
+        `use it: "import 'intersection-observer'" at entry file`);
+}
 
 export function addIntersectListener(element: Element, fn: IntersectCallback,
                                      opts?: IntersectionObserverInit): () => void {
+
+    // @ts-ignore
+    checkState()
     let obj = ioMap.get(element);
     if (!obj) {
         obj = {
@@ -33,6 +42,7 @@ export function addIntersectListener(element: Element, fn: IntersectCallback,
 }
 
 export function removeIntersectListener(element: Element, fn?: IntersectCallback) {
+    checkState();
     const obj = ioMap.get(element);
     if (!obj || !element) return;
     const {io, cbs} = obj;

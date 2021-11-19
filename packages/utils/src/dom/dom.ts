@@ -6,7 +6,7 @@
  * @param option
  * @return ()=>void, 移除handle
  */
-export const on = (function () {
+export const on = /*#__PURE__*/ (function () {
     if (!document.addEventListener) {
         return function (element: EventTarget, event: string, handler: EventListener) {
             if (element && event && handler) {
@@ -37,7 +37,7 @@ export const on = (function () {
  * @param handler
  * @param option
  */
-export const off = (function () {
+export const off = /*#__PURE__*/ (function () {
     if (!document.removeEventListener) {
         return function (element: EventTarget, event: string, handler: EventListener) {
             if (element && event) {
@@ -57,9 +57,9 @@ export const off = (function () {
 /**
  * 获取页面滚动条宽度
  */
-export function getScrollBarWidth(): number {
+export function getScrollbarWidth(): number {
     let noScroll, scroll, oDiv = document.createElement('div');
-    oDiv.style.cssText = 'position:absolute; top:-9999px;width:100px; height:100px; overflow:hidden;visibility:hidden';
+    oDiv.style.cssText = 'position:absolute;top:-100px;width:100px; height:100px;overflow:hidden;pointer-events:none;visibility:hidden';
     noScroll = document.body.appendChild(oDiv).clientWidth;
     oDiv.style.overflowY = 'scroll';
     scroll = oDiv.clientWidth;
@@ -72,7 +72,7 @@ export function getScrollBarWidth(): number {
  * @param dom Element
  * @param attr? string
  */
-export const getStyle = (function () {
+export const getStyle = /*#__PURE__*/(function () {
     // @ts-ignore
     if (document.currentStyle) {
         return (dom: Element, attr?: string) => {

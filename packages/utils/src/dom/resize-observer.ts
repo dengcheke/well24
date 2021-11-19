@@ -5,19 +5,19 @@ type ResizeMapObj = {
     cbs: ResizeCallback[],
     ro: ResizeObserver
 }
-const roMap = new WeakMap<Element, ResizeMapObj>();
-
+let roMap = /*#__PURE__*/new WeakMap<Element, ResizeMapObj>();
 
 export function addResizeListener(
     element: Element,
     fn: ResizeCallback,
     opts?: ResizeObserverOptions
 ): () => void {
+
     let obj = roMap.get(element);
     if (!obj) {
         obj = {
             cbs: [],
-            ro: new ObserverPolyfill((entries) => {
+            ro: new ObserverPolyfill((entries:ResizeObserverEntry[]) => {
                 for (let entry of entries) {
                     const obj = roMap.get(entry.target);
                     if (!obj) return;

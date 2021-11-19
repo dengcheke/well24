@@ -4,15 +4,18 @@
     "description": "utils",
     "main": "./dist/index.cjs.js",
     "module": "./dist/index.esm.js",
-    "types": "./dist/index.d.ts",
+    "types": "./dist/types/index.d.ts",
     "scripts": {
         "build": "rimraf ./dist && rollup -c ./build.config.js"
     },
     "keywords": [],
     "license": "MIT",
-    "dependencies": {
-        "@babel/runtime-corejs3": "^7.16.0",
+    "peerDependencies": {
         "intersection-observer": "^0.12.0",
-        "resize-observer-polyfill": "^1.5.1"
+        "resize-observer-polyfill": "^1.5.1",
+        "xlsx": "^0.17.4"
+    },
+    "dependencies": {
+        "@babel/runtime-corejs3": "^7.16.0"
     }
 }
