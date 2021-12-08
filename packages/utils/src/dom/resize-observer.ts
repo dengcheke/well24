@@ -27,11 +27,11 @@ export function addResizeListener(
             })
         }
         roMap.set(element, obj);
+        obj.ro.observe(element, opts);
     }
-    const {cbs, ro} = obj;
+    const {cbs} = obj;
     cbs.indexOf(fn) === -1 && cbs.push(fn);
-    // @ts-ignore
-    ro.observe(element, opts);
+
     return function () {
         removeResizeListener(element, fn);
     }
@@ -43,10 +43,8 @@ export function removeResizeListener(element: Element, fn: ResizeCallback) {
     const {cbs,ro} = obj;
     if (fn) {
         cbs.splice(cbs.indexOf(fn), 1);
-    } else { //移除全部
+    } else {
         ro.disconnect();
         roMap.delete(element);
     }
 }
-
-export * as ResizeObserver from 'resize-observer-polyfill';

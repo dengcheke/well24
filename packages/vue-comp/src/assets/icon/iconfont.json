@@ -1,0 +1,37 @@
+{
+  "id": "2997454",
+  "name": "vue-ui",
+  "font_family": "icon-w24",
+  "css_prefix_text": "icon-w24-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "20017055",
+      "name": "图片-加载失败",
+      "font_class": "img-err",
+      "unicode": "e840",
+      "unicode_decimal": 59456
+    },
+    {
+      "icon_id": "281396",
+      "name": "double-arrow-down",
+      "font_class": "arrow-down",
+      "unicode": "e6bd",
+      "unicode_decimal": 59069
+    },
+    {
+      "icon_id": "4325757",
+      "name": "icon_loading",
+      "font_class": "loading",
+      "unicode": "eb80",
+      "unicode_decimal": 60288
+    },
+    {
+      "icon_id": "8224815",
+      "name": "暂无数据",
+      "font_class": "nodata",
+      "unicode": "e602",
+      "unicode_decimal": 58882
+    }
+  ]
+}

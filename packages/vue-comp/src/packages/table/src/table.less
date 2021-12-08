@@ -1,0 +1,367 @@
+@import "/src/font/iconfont.css";
+
+.ele-rw-table {
+  width: 100%;
+  color: white;
+  position: relative;
+  backface-visibility: hidden;
+  .inner-wrapper {
+    position: relative;
+
+    &:hover > .scrollbar__bar {
+      opacity: 1;
+      transition: opacity 340ms ease-out;
+    }
+  }
+
+  /*table*/
+
+  table {
+    table-layout: fixed;
+    border-collapse:collapse;
+  }
+
+  .table__header-wrapper {
+    background-color: rgb(20, 78, 116);
+  }
+
+  .table__header {
+    color: #69d6f1;
+  }
+
+  .table__body {
+    color: white;
+
+    tr.row {
+      transition: 0.1s background-color;
+      background-color: #002534;
+
+      &.is-hover,
+      &.current-row {
+        background-color: #133e58;
+      }
+    }
+  }
+
+  .table__footer-wrapper {
+    background-color: #002534;
+  }
+
+  td {
+    padding: 0;
+    position: relative;
+
+    .cell {
+      overflow: hidden;
+    }
+
+    &:not(.gutter) > .cell {
+      padding: 12px 10px;
+      box-sizing: border-box;
+    }
+
+    &.is-hidden {
+      visibility: hidden;
+      pointer-events: none;
+    }
+  }
+
+  .table-main {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    .table__header-wrapper,
+    .table__footer-wrapper {
+      overflow: hidden;
+      flex: none;
+    }
+
+    .table__body-wrapper {
+      overflow: hidden;
+      flex: 1 0 0;
+    }
+  }
+
+  .table__fixed--left {
+    position: absolute;
+    left: 0;
+    top: 0;
+    overflow: hidden;
+
+    &.fixed-shadow {
+      box-shadow: 5px 0 10px -5px black;
+    }
+
+    .table__header-wrapper,
+    .table__body-wrapper {
+      position: relative;
+      overflow: hidden;
+    }
+  }
+
+  .table__fixed--right {
+    position: absolute;
+    overflow: hidden;
+    right: 0;
+    top: 0;
+
+    &.fixed-shadow {
+      box-shadow: -5px 0 10px -5px black;
+    }
+
+    .table__header-wrapper,
+    .table__body-wrapper,
+    .table__footer-wrapper {
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      z-index: 0;
+    }
+  }
+
+  /*checkbox*/
+
+  tr .cell-checkbox {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    background-color: white;
+    z-index: 0; //fixed bug: before 和 after z-index穿透了上层的div并显示
+    //use for check
+    &:before {
+      content: "";
+      display: block;
+      position: absolute;
+      height: 8px;
+      width: 4px;
+      left: 4px;
+      top: 2px;
+      z-index: 1;
+      border: 1px solid #fff;
+      border-left: 0;
+      border-top: 0;
+      transition: transform 0.25s;
+      transform: rotate(45deg) scaleY(0);
+      transform-origin: center;
+    }
+
+    //use for indeterminate
+    &:after {
+      content: "";
+      display: block;
+      position: absolute;
+      z-index: 2;
+      background-color: #fff;
+      height: 2px;
+      width: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  tr.is-checked {
+    .cell-checkbox {
+      background-color: #409eff;
+    }
+
+    .cell-checkbox:before {
+      transform: rotate(45deg) scaleY(1);
+    }
+
+    .cell-checkbox:after {
+      display: none;
+    }
+  }
+
+  tr.is-indeterminate {
+    .cell-checkbox {
+      background-color: #409eff;
+    }
+
+    .cell-checkbox:before {
+      display: none;
+    }
+  }
+
+  /*普通展开*/
+
+  .icon-expand.use-for-expand {
+    transition: transform 0.25s;
+  }
+
+  tr.is-expanded .icon-expand.use-for-expand {
+    transform: rotate(90deg);
+  }
+
+  /*树形展开*/
+
+  .icon-expand.use-for-tree {
+    transition: transform 0.25s;
+    position: absolute;
+    left: 1px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: block;
+    font-size: 18px;
+  }
+
+  tr.is-tree-expanded .icon-expand.use-for-tree {
+    transform: translateY(-50%) rotate(90deg);
+  }
+
+  /*resize*/
+
+  .resize-handle {
+    position: absolute;
+    width: 14px;
+    top: 0;
+    bottom: 0;
+    cursor: col-resize;
+
+    &.is-left {
+      left: -7px;
+    }
+
+    &.is-right {
+      right: -7px;
+    }
+  }
+
+  /*sort*/
+
+  .sort-caret-wrapper {
+    display: inline-flex;
+    margin-left: 5px;
+    flex-direction: column;
+    align-items: center;
+    height: 34px;
+    width: 16px;
+    vertical-align: middle;
+    cursor: pointer;
+    position: relative;
+
+    .sort-caret {
+      width: 0;
+      height: 0;
+      border: 5px solid transparent;
+      position: absolute;
+      transition: 0.1s border-color;
+      transform: scale(1.05);
+
+      &.asc {
+        border-bottom-color: #c0c4cc;
+        top: 4px;
+
+        &.is-active {
+          border-bottom-color: #409eff;
+        }
+      }
+
+      &.desc {
+        border-top-color: #c0c4cc;
+        bottom: 4px;
+
+        &.is-active {
+          border-top-color: #409eff;
+        }
+      }
+    }
+  }
+
+  /*scrollbar*/
+
+  .scrollbar__bar {
+    position: absolute;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 120ms ease-out;
+
+    &.is-vertical {
+      width: 6px;
+      right: 2px;
+
+      .scrollbar__thumb {
+        width: 100%;
+      }
+    }
+
+    &.is-horizontal {
+      height: 6px;
+      bottom: 2px;
+      left: 0;
+      right: 0;
+
+      .scrollbar__thumb {
+        height: 100%;
+      }
+    }
+
+    .scrollbar__thumb {
+      position: relative;
+      display: block;
+      width: 0;
+      height: 0;
+      cursor: pointer;
+      border-radius: inherit;
+      background-color: #30688b;
+      transition: .3s background-color;
+
+      &:hover {
+        background-color: rgba(144, 147, 153, .5);
+      }
+    }
+  }
+
+  /*empty*/
+
+  .empty-slot {
+    background-color: #002534;
+  }
+
+  /*drag-line*/
+
+  .drag-line {
+    position: absolute;
+    bottom: 0;
+    width: 2px;
+    background-color: white;
+  }
+
+
+  /*border-color*/
+
+  @borderStyle: 1px solid cyan;
+
+  .table__header td {
+    border-bottom: @borderStyle;
+    border-right: @borderStyle;
+  }
+
+  .table__body, .table__footer {
+    tr:not(:last-child) td {
+      border-bottom: @borderStyle;
+    }
+
+    td:not(:last-child) {
+      border-right: @borderStyle;
+    }
+  }
+
+  .table__footer tr:first-child td {
+    border-top: @borderStyle
+  }
+
+  td.no-right-border,
+  .table__fixed--left.fixed-shadow td.no-shadow-right {
+    border-right: none !important;
+  }
+}
