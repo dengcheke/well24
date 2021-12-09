@@ -32,10 +32,10 @@
                         我是内容 ,
                         <div style="background-color: white;margin-bottom: 10px;width: 150px"
                              @click="appendToBody=!appendToBody">
-                            切换appendToBody
+                            切换appendToBody,{{appendToBody?'true':'false'}}
                         </div>
                         <div style="background-color: yellow;width: 150px" @click="fullScreen=!fullScreen">
-                            切换fullScreen
+                            切换fullScreen,{{fullScreen?'true':'false'}}
                         </div>
                     </div>
                 </template>

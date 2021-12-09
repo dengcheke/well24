@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="nested-dialog-wrapper">
         <p class="tip">dialog可以嵌套</p>
         <div style="margin-bottom: 10px;position: fixed;z-index: 99999;right: 20px;padding: 10px;
             top:50px;background-color: #9a6e3a;display: flex;flex-direction: column">
@@ -16,7 +16,7 @@
             <span class="btn" :class='{active:fullScreen2}' @click="fullScreen2=!fullScreen2">切换2全屏</span>
         </div>
         <div style="width: 100%;height: 800px;position: relative;border: 1px solid black">
-            <ele-rw-dialog :append-to-body="appendToBody1" :class-list="['outer']"
+            <custom-dialog :append-to-body="appendToBody1" :class-list="['outer']"
                            :shadow="shadow1" :show.sync="show1" :width="700" :height="500"
                            :full-screen="fullScreen1">
                 <template #title>
@@ -25,7 +25,7 @@
                 <template>
                     <div style="height:100%;background-color: #DD4A68;position: relative">
                         <div>我是dialog111111</div>
-                        <ele-rw-dialog :append-to-body="appendToBody2" :class-list="['inner']"
+                        <custom-dialog :append-to-body="appendToBody2" :class-list="['inner']"
                                        :width="200" :height="200"
                                        :shadow="shadow2" :show.sync="show2"
                                        :full-screen="fullScreen2">
@@ -35,10 +35,10 @@
                             <template>
                                 我是dialog22222
                             </template>
-                        </ele-rw-dialog>
+                        </custom-dialog>
                     </div>
                 </template>
-            </ele-rw-dialog>
+            </custom-dialog>
         </div>
         <code-panel>
             <highlightjs language='javascript' :code="code"/>
@@ -67,25 +67,15 @@ export default {
 }
 </script>
 
-<style scoped lang="less">
-.btn {
-    margin-right: 0;
-    margin-bottom: 10px;
+<style lang="less">
+.nested-dialog-wrapper{
+    .btn {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
 }
 
-/deep/ .close-icon {
-    display: block;
-    width: 24px;
-    height: 24px;
-    line-height: 24px;
-    text-align: center;
-    position: absolute;
-    right: 0;
-    top: 0;
-    cursor: auto;
-}
-
-/deep/ .ele-rw-dialog.outer {
+.custom-dialog.outer {
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -95,7 +85,7 @@ export default {
     }
 }
 
-/deep/ .ele-rw-dialog.inner {
+.custom-dialog.inner {
     display: flex;
     flex-direction: column;
     align-items: stretch;

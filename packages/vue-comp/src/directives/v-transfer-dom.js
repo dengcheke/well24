@@ -44,11 +44,6 @@ export const vTransferDom = {
             target.appendChild(el) // el移动到新位置
             hasMovedOut = true;
         }
-        let transferData = map.get(el);
-        if(transferData){
-            _unbind(el)
-            map.delete(el)
-        }
         map.set(el,{
             parentNode: parentNode,//父元素
             placeholder: placeholder,//占位元素

@@ -155,10 +155,10 @@ export function removeClass(el: Element, cls: string[] | string) {
  * @param refNode 要插入的节点
  * @param insertNode 要插入的新的节点
  */
-export function insertBefore(refNode:Node,insertNode:Node){
+export function insertBefore(refNode: Node, insertNode: Node) {
     const parent = refNode.parentNode;
-    if(!parent) return;
-    return parent.insertBefore(insertNode,refNode);
+    if (!parent) return;
+    return parent.insertBefore(insertNode, refNode);
 }
 
 /**
@@ -166,8 +166,49 @@ export function insertBefore(refNode:Node,insertNode:Node){
  * @param refNode 要插入的节点
  * @param insertNode 要插入的新的节点
  */
-export function insertAfter(refNode:Node,insertNode:Node){
+export function insertAfter(refNode: Node, insertNode: Node) {
     const parent = refNode.parentNode;
-    if(!parent) return;
-    return parent.insertBefore(insertNode,refNode.nextSibling);
+    if (!parent) return;
+    return parent.insertBefore(insertNode, refNode.nextSibling);
+}
+
+/**
+ * 拖拽helper
+ * @param {HTMLElement} el 拖拽对象
+ * @param {function} eventHandler, 事件handler,
+ *          params: {
+ *              e:event, //事件
+ *              type: 'start'  //mousedown
+ *                    | 'move' //mousemove
+ *                    | 'end'  //mouseup
+ *                    | 'leave',  //mouseleave
+ *              state, //状态,
+ *              cancel, //可用于取消拖拽, type='start' 不可用
+ *          }
+ * @param {function | Object} init 初始化函数或对象, 对应 eventHandler 中的 state
+ */
+export function dragHelper(el: HTMLElement, eventHandler: Function, init?: Function | object) {
+    const state = init instanceof Function ? init() : init;
+    return on(el, 'pointerdown', e => {
+        if (eventHandler({e: e, type: "start", state})) {
+            const off1 = on(document, 'pointermove', e => {
+                eventHandler({e: e, type: "move", state, cancel});
+            });
+            const off2 = on(document, 'pointerup', e => {
+                eventHandler({e: e, type: "end", state, cancel});
+                cancel();
+            });
+            const off3 = on(el, 'pointerleave', () => {
+                eventHandler({e: e, type: "leave", state, cancel});
+            })
+            const cancel = function () {
+                if (cancel._isCancel) return;
+                cancel._isCancel = true;
+                off1?.();
+                off2?.();
+                off3?.();
+            }
+            cancel._isCancel = false;
+        }
+    });
 }

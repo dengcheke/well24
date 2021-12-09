@@ -7,7 +7,8 @@
         </custom-scrollbar>
         <collapse-panel :expand.sync="expand" title="xxxxxx">
             <div class="content" style="height: auto" v-click-outside="handleClickOutside">
-                <custom-image lazy style="width: 500px;height: 500px;"
+                <custom-image lazy v-resize="handleResize"
+                              style="width: 500px;height: 500px;"
                               :src="src"/>
             </div>
         </collapse-panel>
@@ -20,14 +21,16 @@ import {vLoading} from "../../../src/directives/v-loading";
 import EmptySlot from "../../../src/packages/empty-slot";
 import CollapsePanel from "../../../src/packages/collapse-panel";
 import CustomImage from "../../../src/packages/custom-image";
-import {vClickOutside} from "../../../src/directives/v-click-outsize";
+import {vClickOutside} from "../../../src/directives/v-click-outside";
+import {vResize} from "../../../src/directives/v-resize";
 
 export default {
     name: "scrollbar",
     components: {CustomImage, CollapsePanel, EmptySlot},
     directives:{
         loading:vLoading,
-        clickOutside:vClickOutside
+        clickOutside:vClickOutside,
+        resize:vResize
     },
     data(){
         return {
@@ -38,6 +41,9 @@ export default {
     },
     methods:{
         handleClickOutside(v1,v2){
+            console.log(1)
+        },
+        handleResize(entry){
             console.log(1)
         }
     }

@@ -1,5 +1,5 @@
 <script type="text/jsx">
-import {rafThrottle,off, on} from "@well24/utils";
+import {off, on, rafThrottle} from "@well24/utils";
 import {vTransferDom} from "@src/directives/v-transfer-dom";
 
 const minZIndex = 1000; //最小的zIndex
@@ -24,20 +24,19 @@ on(document.body, 'keyup', (e) => {
         top && top.$emit('update:show', false);
     }
 });
-on(window,'resize',()=>{
-    winShowCache.forEach(win=>{
+on(window, 'resize', () => {
+    winShowCache.forEach(win => {
         !win.fullScreen && !win.keepPosition && win.placeAtCenter();
     })
 })
 let gId = 1;//全局id
-const template = {
+const storeTemplate = {
     width: null,
     height: null,
     left: null,
     right: null,
     top: null,
     bottom: null,
-    position: null
 };
 export default {
     name: "CustomDialog",
@@ -104,15 +103,12 @@ export default {
     data() {
         return {
             id: gId++,
-            store: {...template},
-            needRestore: false,
         }
     },
     computed: {
         parentNode() {
             return this.appendToBody ? document.body : null;
         },
-
     },
     render(h) {
         const key = `_custom-dialog-${this.id}_`;
@@ -268,22 +264,32 @@ export default {
             }
         },
         checkNestedPosition() {
-            requestAnimationFrame(() => {
-                const dialog = this.$refs.dialog;
-                const wrap = dialog.parentNode;
-                if (dialog.offsetLeft > wrap.clientWidth) {
-                    const left = wrap.clientWidth - dialog.offsetWidth;
-                    dialog.style.left = left > 0 ? left + 'px' : 0;
-                }
-                if (dialog.offsetTop > wrap.clientHeight) {
-                    const top = wrap.clientHeight - dialog.offsetTop;
-                    dialog.style.top = top > 0 ? top + 'px' : 0;
-                }
-            })
-        }
+            const dialog = this.$refs.dialog;
+            const wrap = dialog.parentNode;
+            if (dialog.offsetLeft > wrap.clientWidth) {
+                const left = wrap.clientWidth - dialog.offsetWidth;
+                dialog.style.left = left > 0 ? left + 'px' : 0;
+            }
+            if (dialog.offsetTop > wrap.clientHeight) {
+                const top = wrap.clientHeight - dialog.offsetTop;
+                dialog.style.top = top > 0 ? top + 'px' : 0;
+            }
+        },
     },
     watch: {
-        appendToBody: function () {
+        fullScreen: {
+            handler: function (v) {
+                this.$nextTick(() => {
+                    winShowCache.forEach(i => {
+                        if (i !== this) {
+                            i.checkNestedPosition();
+                        }
+                    });
+                })
+            },
+            immediate: true
+        },
+        appendToBody: function (v) {
             this.show && this.promoteDialogZIndex();
             this.placeAtCenter();
         },
@@ -306,43 +312,12 @@ export default {
                     if (v) {
                         winShowCache.push(this);
                         this.promoteDialogZIndex();
-                        if (!this.fullScreen) {
-                            !this.keepPosition && this.placeAtCenter();
-                        }
+                        !this.fullScreen && !this.keepPosition && this.placeAtCenter();
                     } else { //隐藏，从缓存中移除
                         wrapper.style.zIndex = '1000';
                         removeFromCache(this);
                     }
                 });
-            },
-            immediate: true
-        },
-        fullScreen: {
-            handler: function (v) {
-                this.$nextTick(() => {
-                    winShowCache.forEach(i => {
-                        if (i !== this) {
-                            i.checkNestedPosition();
-                        }
-                    });
-                    const dialog = this.$refs.dialog;
-                    const style = dialog.style;
-                    if (v) {
-                        const {left, right, top, bottom, width, height, position} = style || {};
-                        this.store = {left, right, top, bottom, width, height, position};
-                        this.needRestore = true;
-                        style.left = style.right = style.top = style.bottom = 0;
-                        style.position = "fixed";
-                        style.width = style.height = '100%';
-                    } else {
-                        if (!this.needRestore) return;
-                        Object.keys(this.store).forEach(attr => {
-                            style[attr] = this.store[attr];
-                        })
-                        this.store = {...template};
-                        this.needRestore = false;
-                    }
-                })
             },
             immediate: true
         }
@@ -375,6 +350,16 @@ export default {
         height: auto;
         background-color: rgba(23, 75, 98, 0.9);
         box-shadow: 2px 2px 10px 0 black;
+
+        &.full-screen {
+            left: 0 !important;
+            right: 0 !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            position: fixed !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
     }
 
     .dialog__title {
