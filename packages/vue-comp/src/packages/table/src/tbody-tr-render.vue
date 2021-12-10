@@ -1,10 +1,9 @@
 <script type="text/jsx">
-import {mapping, throttle} from "@src/utils/index";
-import {resolveClass, resolveStyle} from "./utils";
+import {mapping, resolveClass, resolveStyle} from "./utils";
 import {TableEvent} from "./table-config";
 
 export default {
-    name: "tbody-tr-render",
+    name: "TbodyTrRender",
     inject: ['table', 'store'],
     props: ['row', 'domIndex', 'index', 'fixed', 'treeNodeData'],
     computed: {
@@ -57,10 +56,10 @@ export default {
                 event: e
             });
         },
-        handleEnterRow: throttle(function (e) {
+        handleEnterRow(e) {
             this.store.hoverRow = this.row;
             this.store.hover$Idx = this.domIndex;
-        }, 30, {leading: true, trailing: false}),
+        },
         handleCheck(e) {
             e.stopPropagation();
             this.table.toggleRowChecked(this.row);
@@ -119,7 +118,7 @@ export default {
                 addExpandNode = true;
             } else if (colNode.type === 'expand') {
                 cellContent = <span {...{
-                    class: ['iconfont', 'icon-expand', 'use-for-expand'],
+                    class: ['icon-w24', 'icon-w24-expand', 'use-for-expand'],
                     style: {
                         display: 'inline-block',
                         fontSize: '18px',
@@ -139,8 +138,8 @@ export default {
                 }}>
                     {[<span {...{
                         class: {
-                            iconfont: true,
-                            'icon-expand': this.treeNodeData && !this.treeNodeData.isLeaf,
+                            'icon-w24': true,
+                            'icon-w24-expand': this.treeNodeData && !this.treeNodeData.isLeaf,
                             'use-for-tree': true
                         },
                         on: {

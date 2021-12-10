@@ -3,7 +3,7 @@
         <p class="tip">
             col指定width,列宽为定值(未指定则默认80),若宽度总和不够,右侧会出现空白
         </p>
-        <ele-rw-table :table-data="tableData" :table-cols="cols1"/>
+        <custom-table :table-data="tableData" :table-cols="cols1"/>
         <code-panel>
             <highlightjs language='javascript' :code="code1"/>
         </code-panel>
@@ -11,7 +11,7 @@
         <p class="tip">
             col指定minWidth即为自适应列,将平分剩余宽度
         </p>
-        <ele-rw-table :table-data="tableData" :table-cols="cols"/>
+        <custom-table :table-data="tableData" :table-cols="cols"/>
         <code-panel>
             <highlightjs language='javascript' :code="code2"/>
         </code-panel>

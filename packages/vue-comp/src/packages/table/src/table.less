@@ -1,6 +1,4 @@
-@import "/src/font/iconfont.css";
-
-.ele-rw-table {
+.custom-table {
   width: 100%;
   color: white;
   position: relative;
@@ -194,17 +192,17 @@
 
   /*普通展开*/
 
-  .icon-expand.use-for-expand {
+  .icon-w24-expand.use-for-expand {
     transition: transform 0.25s;
   }
 
-  tr.is-expanded .icon-expand.use-for-expand {
+  tr.is-expanded .icon-w24-expand.use-for-expand {
     transform: rotate(90deg);
   }
 
   /*树形展开*/
 
-  .icon-expand.use-for-tree {
+  .icon-w24-expand.use-for-tree {
     transition: transform 0.25s;
     position: absolute;
     left: 1px;
@@ -214,7 +212,7 @@
     font-size: 18px;
   }
 
-  tr.is-tree-expanded .icon-expand.use-for-tree {
+  tr.is-tree-expanded .icon-w24-expand.use-for-tree {
     transform: translateY(-50%) rotate(90deg);
   }
 

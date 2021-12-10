@@ -1,12 +1,11 @@
 <script type="text/jsx">
-import {mapping} from "@src/utils/index";
 import BodyTrRender from './tbody-tr-render';
 import ExpandTrRender from './expand-tr-render';
-import {addClass, removeClass} from "@src/utils/dom";
-import {walkTreeNode} from "./utils";
+import {addClass, removeClass} from "@well24/utils";
+import {walkTreeNode,mapping} from "./utils";
 
 export default {
-    name: "table-body",
+    name: "TableBody",
     inject: ['table', 'store'],
     components: {BodyTrRender, ExpandTrRender},
     props: {

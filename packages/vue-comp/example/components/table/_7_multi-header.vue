@@ -3,7 +3,7 @@
         <p class="tip">
             设置col的children渲染为多级表头, 设置fixed可多级表头整体固定
         </p>
-        <ele-rw-table  style="width: 800px"
+        <custom-table  style="width: 800px"
                       :height="500"
                       :table-data="tableData"
                       :table-cols="tableCols"/>
@@ -60,7 +60,7 @@ const col = [
 ];
 const code1 = `
             <template>
-                <ele-rw-table style="width: 800px"
+                <custom-table style="width: 800px"
                       :height="500"
                       :table-data="tableData"
                       :table-cols="tableCols"/>

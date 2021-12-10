@@ -4,7 +4,7 @@
             表格全局样式,单元格样式,行样式,等,
             <span style="color:red">(当自定义样式之后可能会覆盖表格的样式，比如选中行等)</span>
         </p>
-        <ele-rw-table no-border
+        <custom-table no-border
                       header-row-class="header-row-class"
                       :footer-row-class="footerRowClass"
                       :cell-style="cellStyle"
@@ -73,7 +73,7 @@ const cols = [
 ];
 const code1 = `
             <template>
-                <ele-rw-table header-row-class="header-row-class"
+                <custom-table header-row-class="header-row-class"
                       :footer-row-class="footerRowClass"
                       :cell-style="cellStyle"
                       :table-data="tableData"
@@ -165,7 +165,7 @@ const code1 = `
             <\/script>
 
             <style lang="less">
-                .ele-rw-table {
+                .custom-table {
                     td {
                         border: none !important;
                     }
@@ -213,7 +213,7 @@ export default {
 </script>
 
 <style scoped lang="less">
-/deep/ .ele-rw-table[no-border] {
+/deep/ .custom-table[no-border] {
     td {
         border: none !important;
     }

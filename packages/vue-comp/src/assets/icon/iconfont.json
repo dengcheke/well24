@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "5747613",
+      "name": "Expand",
+      "font_class": "expand",
+      "unicode": "e727",
+      "unicode_decimal": 59175
+    },
+    {
       "icon_id": "20017055",
       "name": "图片-加载失败",
       "font_class": "img-err",

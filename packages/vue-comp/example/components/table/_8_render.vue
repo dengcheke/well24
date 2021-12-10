@@ -3,7 +3,7 @@
         <p class="tip">
             设置col render,renderHeader,renderFooter(会覆盖check,expand列的默认内容),自定义渲染内容
         </p>
-        <ele-rw-table :height="500" :table-data="tableData" :footer-data="footerData"
+        <custom-table :height="500" :table-data="tableData" :footer-data="footerData"
                       :table-cols="tableCols"/>
         <code-panel>
             <highlightjs language='javascript' :code="code1"/>
@@ -12,7 +12,7 @@
 </template>
 
 <script type="text/jsx">
-import {TABLE} from "../../../packages/table";
+import {TABLE} from '@src/packages/table/src/table-config'
 
 const template = {
     date: "2016-05-1",
@@ -24,7 +24,7 @@ const template = {
 }
 const code1 = `
             <template>
-                <ele-rw-table :height="500" :table-data="tableData" :footer-data="footerData"
+                <custom-table :height="500" :table-data="tableData" :footer-data="footerData"
                       :table-cols="tableCols"/>
             </template>
             <script>
@@ -36,7 +36,6 @@ const code1 = `
                     address: "上海市普陀区金沙江路 1511 弄",
                     zip: 233333
                 }
-                 import {TABLE} from '@packages/table'
                  export default {
                     name: "check-and-expand",
                     data() {

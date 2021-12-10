@@ -18,7 +18,7 @@
             <span class="btn" @click="height='auto'">切换height为auto</span>
         </div>
         <div style="margin-bottom: 10px">当前模式:{{ height !== 'auto' ? '固定高度350px' : 'auto' }},min:200,max:400</div>
-        <ele-rw-table style="box-shadow: 0 0 5px 1px black;"
+        <custom-table style="box-shadow: 0 0 5px 1px black;"
                       :height="height"
                       :min-height="200"
                       :max-height="400"
@@ -34,7 +34,7 @@
         <p>自适应父容器,拖拽右下角黑色块改变父容器大小</p>
         <div style="padding: 0 20px 20px 0;position: relative;box-shadow: 0 0 0 1px black; height: 200px;width: 500px;
             min-width: 500px;min-height: 200px;max-height: 500px;max-width: 1200px">
-            <ele-rw-table height="calc(100% - 50px)" :table-data="tableData1" :table-cols="cols"/>
+            <custom-table height="calc(100% - 50px)" :table-data="tableData1" :table-cols="cols"/>
             <div class="drag" @mousedown="handleDrag($event)"/>
         </div>
         <code-panel>
@@ -70,7 +70,7 @@ const code1 = `
                     <span class="btn" @click="height=350">切换height固定350px</span>
                     <span class="btn" @click="height='auto'">切换height为auto</span>
                 </div>
-                <ele-rw-table style="box-shadow: 0 0 5px 1px black;"
+                <custom-table style="box-shadow: 0 0 5px 1px black;"
                               :height="height"
                               :min-height="200"
                               :max-height="400"
@@ -122,7 +122,7 @@ const code2 = `
                    height: 200px;width: 500px;
                    min-width: 500px;min-height: 200px;
                    max-width: 1200px;max-height: 500px;">
-                   <ele-rw-table height="calc(100% - 50px)" :table-data="tableData" :table-cols="tableCols"/>
+                   <custom-table height="calc(100% - 50px)" :table-data="tableData" :table-cols="tableCols"/>
                    <div class="drag" @mousedown="handleDrag($event)"/>
                </div>
             </template>

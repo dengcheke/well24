@@ -3,7 +3,7 @@
         <p class="tip">
             最简单的表格, 传入 tableCols 和 tableData 即可
         </p>
-        <ele-rw-table :table-data="tableData" :table-cols="cols"/>
+        <custom-table :table-data="tableData" :table-cols="cols"/>
         <code-panel>
             <highlightjs language='javascript' :code="code1"/>
         </code-panel>
@@ -16,7 +16,7 @@
             <span class="btn" @click="align='center'">居中</span>
             <span class="btn" @click="align='right'">靠右</span>
         </div>
-        <ele-rw-table :table-data="tableData1" :table-cols="cols1" :align="align"/>
+        <custom-table :table-data="tableData1" :table-cols="cols1" :align="align"/>
         <code-panel>
             <highlightjs language='javascript' :code="code2"/>
         </code-panel>
@@ -27,7 +27,7 @@
         <div style="margin-bottom: 10px">
             <span class="btn" @click="selectRow">选中第1行</span>
         </div>
-        <ele-rw-table class="table-hl-row" :table-data="tableData" :table-cols="cols"
+        <custom-table class="table-hl-row" :table-data="tableData" :table-cols="cols"
                       row-key="name" ref="table"/>
         <code-panel>
             <highlightjs language='javascript' :code="code3"/>
@@ -81,7 +81,7 @@ const cols1 = [
 ];
 const code1 = `
             <template>
-                  <ele-rw-table :table-data="tableData" :table-cols="cols"/>
+                  <custom-table :table-data="tableData" :table-cols="cols"/>
             <\/template>
             <script>
                  export default {
@@ -134,7 +134,7 @@ const code2 = `
                         <span class="btn" @click="align='center'">居中</span>
                         <span class="btn" @click="align='right'">靠右</span>
                     </div>
-                    <ele-rw-table :table-data="tableData" :table-cols="cols" :align="align"/>
+                    <custom-table :table-data="tableData" :table-cols="cols" :align="align"/>
                 </div>
             <\/template>
             <script>
@@ -169,7 +169,7 @@ const code3 = `
                 <div style="margin-bottom: 10px">
                     <span class="btn" @click="selectRow">选中第1行</span>
                 </div>
-                <ele-rw-table :table-data="tableData" :table-cols="cols" row-key="name" ref="table"/>
+                <custom-table :table-data="tableData" :table-cols="cols" row-key="name" ref="table"/>
             </template>
             <script>
                 export default {
@@ -192,7 +192,7 @@ const code3 = `
             <\/script>
             <style lang="less">
                 //修改高亮行颜色
-                .table-hl-row.ele-rw-table .table__body .row {
+                .table-hl-row.custom-table .table__body .row {
                     &.current-row {
                         background-color: #DD4A68;
                     }
@@ -228,7 +228,7 @@ export default {
 }
 </script>
 <style lang="less">
-.table-hl-row.ele-rw-table .table__body .row {
+.table-hl-row.custom-table .table__body .row {
     &.current-row {
         background-color: #DD4A68;
     }

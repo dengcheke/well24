@@ -1,8 +1,8 @@
 <script type="text/jsx">
-import {mapping} from "@src/utils/index";
+import {mapping} from "./utils";
 import TfootTrRender from './tfoot-tr-render'
 export default {
-    name: "table-footer",
+    name: "TableFooter",
     inject: ['table', 'store'],
     components:{TfootTrRender},
     props:{

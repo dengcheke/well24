@@ -3,7 +3,7 @@
         <p class="tip">
             设置col的fixed开启固定列
         </p>
-        <ele-rw-table no-border style="width: 800px"
+        <custom-table no-border style="width: 800px"
                       :height="500"
                       :table-data="tableData"
                       :table-cols="tableCols"/>
@@ -32,7 +32,7 @@ const col = [
 ];
 const code1 = `
             <template>
-                <ele-rw-table no-border style="width: 800px"
+                <custom-table no-border style="width: 800px"
                       :height="500"
                       :table-data="tableData"
                       :table-cols="tableCols"/>
@@ -78,7 +78,7 @@ export default {
 }
 </script>
 <style lang="less" scoped>
-/deep/ .ele-rw-table[no-border] {
+/deep/ .custom-table[no-border] {
     td {
         border: none !important;
     }

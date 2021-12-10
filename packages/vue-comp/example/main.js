@@ -6,10 +6,8 @@ import App from './app';
 import router from './router'
 import '../src/assets/icon/iconfont.css'
 
-/*import EleRwTable from '../src/packages/table/index';
-Vue.use(EleRwTable);
-
-*/
+import CustomTable from '../src/packages/table/src/table';
+Vue.component(CustomTable.name, CustomTable);
 import CodePanel from './components/code-panel';
 Vue.component('code-panel',CodePanel);
 

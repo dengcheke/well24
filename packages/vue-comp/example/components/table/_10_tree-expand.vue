@@ -4,7 +4,7 @@
             默认开启树形结构,只需要row含有子节点数组，默认为 row 的 children 字段， 可通过 childrenKey 修改,
         </p>
         <p>设置treeNodeKey 指定展开箭头所在的列</p>
-        <ele-rw-table height="auto" :max-height="500" ref="table" row-key="name" :tree-node-key="'class'"
+        <custom-table height="auto" :max-height="500" ref="table" row-key="name" :tree-node-key="'class'"
                       :table-data="tableData"
                       :table-cols="tableCols"/>
         <code-panel>
@@ -21,7 +21,7 @@ const col = [
 ];
 const code1 = `
             <template>
-                <ele-rw-table height="auto" :max-height="500"  ref="table" row-key="name" :tree-node-key="'class'"
+                <custom-table height="auto" :max-height="500"  ref="table" row-key="name" :tree-node-key="'class'"
                       :table-data="tableData"
                       :table-cols="tableCols"/>
             </template>

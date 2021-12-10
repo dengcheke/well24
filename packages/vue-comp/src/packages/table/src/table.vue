@@ -1,5 +1,5 @@
 <template>
-    <div class="ele-rw-table outer-wrapper" :uid="'table_uid_'+_globalTableId"
+    <div class="custom-table outer-wrapper" :uid="'table_uid_'+_globalTableId"
          :style="calcElStyle()">
         <div class="inner-wrapper" :style="calcInnerStyle()" ref="innerWrap"
              style="z-index: 0" v-mousewheel="handleMousewheel">
@@ -61,22 +61,22 @@
 </template>
 
 <script type="text/babel">
-import {clamp, isDefined, mapping, treeToArray} from "@src/utils/index";
-import {MouseWheel} from "@src/directives/v-mousewheel";
+import {clamp} from "@well24/utils";
+import {vMouseWheel} from "@src/directives/v-mousewheel";
 import {TableEvent} from "./table-config";
-import EmptySlot from '@packages/empty-slot/index';
+import EmptySlot from '@src/packages/empty-slot';
 import store from './store';
 import TableHeader from './table-header';
 import TableBody from './table-body';
 import TableFooter from './table-footer';
 import ResizeObserver from 'resize-observer-polyfill';
-import Bar from '../../bar';
-import {animationScrollValue, getTableId} from "./utils";
+import Bar from '@src/packages/bar';
+import {animationScrollValue, getTableId, isDefined, mapping, treeToArray} from "./utils";
 
 export default {
-    name: "EleRwTable",
+    name: "CustomTable",
     directives: {
-        'mousewheel': MouseWheel
+        'mousewheel': vMouseWheel
     },
     provide() {
         return {
@@ -801,7 +801,7 @@ export default {
         tableData: {
             handler: function (newly, older) {
                 //重新赋值,滚动到左上角
-                newly !== older && this.resetScrollOnDataChange && this.resetScroll(0,0);
+                newly !== older && this.resetScrollOnDataChange && this.resetScroll(0, 0);
                 this.store.handleTableDataChange();
             },
             immediate: true

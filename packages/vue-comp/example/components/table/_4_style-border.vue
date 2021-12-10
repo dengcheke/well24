@@ -3,7 +3,7 @@
         <p class="tip">
             表格斑马纹
         </p>
-        <ele-rw-table table-stripe :table-data="tableData" :table-cols="cols"/>
+        <custom-table table-stripe :table-data="tableData" :table-cols="cols"/>
         <code-panel>
             <highlightjs language='less' :code="code1"/>
         </code-panel>
@@ -12,17 +12,17 @@
             表格边框样式修改
         </p>
         <p>无边框</p>
-        <ele-rw-table no-border :table-data="tableData" :table-cols="cols"/>
+        <custom-table no-border :table-data="tableData" :table-cols="cols"/>
         <code-panel>
             <highlightjs language='less' :code="code2"/>
         </code-panel>
         <p>内边框</p>
-        <ele-rw-table inner-border :table-data="tableData" :table-cols="cols" :footer-data="footerData"/>
+        <custom-table inner-border :table-data="tableData" :table-cols="cols" :footer-data="footerData"/>
         <code-panel>
             <highlightjs language='less' :code="code3"/>
         </code-panel>
         <p>外边框</p>
-        <ele-rw-table outer-border :table-data="tableData" :table-cols="cols"/>
+        <custom-table outer-border :table-data="tableData" :table-cols="cols"/>
         <code-panel>
             <highlightjs language='less' :code="code4"/>
         </code-panel>
@@ -67,7 +67,7 @@ const cols = [
 const code1 = `
             <style lang="less">
                 /*斑马纹*/
-                .ele-rw-table .table__body{
+                .custom-table .table__body{
                     tr.row {
                         &:nth-child(odd){
                             background-color: #01a3a3;
@@ -81,13 +81,13 @@ const code1 = `
 `
 const code2 = `
             <style lang="less">
-                .ele-rw-table td {
+                .custom-table td {
                         border: none !important;
                 }
             </style>`
 const code3 = `
             <template>
-                <ele-rw-table :table-data="tableData" :table-cols="cols" :footer-data="footerData"/>
+                <custom-table :table-data="tableData" :table-cols="cols" :footer-data="footerData"/>
             </template>
 
             <script>
@@ -139,7 +139,7 @@ const code3 = `
             </style>`
 const code4 = `
             <style lang="less">
-                  .ele-rw-table{
+                  .custom-table{
                     box-shadow: 0 0 10px 2px black;
                   }
             </style>`
@@ -169,7 +169,7 @@ export default {
 </script>
 
 <style scoped lang="less">
-/deep/ .ele-rw-table[table-stripe] .table__body {
+/deep/ .custom-table[table-stripe] .table__body {
     tr.row {
         &:nth-child(odd) {
             background-color: #01a3a3;
@@ -181,13 +181,13 @@ export default {
     }
 }
 
-/deep/ .ele-rw-table[no-border] {
+/deep/ .custom-table[no-border] {
     td {
         border: none !important;
     }
 }
 
-/deep/ .ele-rw-table[inner-border] {
+/deep/ .custom-table[inner-border] {
     @borderStyle: 2px solid green;
 
     .table__header td {
@@ -210,7 +210,7 @@ export default {
     }
 }
 
-/deep/ .ele-rw-table[outer-border] {
+/deep/ .custom-table[outer-border] {
     box-shadow: 0 0 10px 2px black;
 }
 </style>

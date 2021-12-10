@@ -9,7 +9,7 @@
             <span class="btn" @click="check2">勾选王小虎2(传对象)</span>
             <span class="btn" @click="setAll">全选</span>
         </div>
-        <ele-rw-table :height="500" ref="table" row-key="name"
+        <custom-table :height="500" ref="table" row-key="name"
                       :table-data="tableData"
                       :table-cols="tableCols"/>
         <code-panel>
@@ -23,7 +23,7 @@
             <span class="btn" @click="setAllExpand">全展开</span>
         </div>
         <p>通过设置scopeSlot的方式设置展开行内容</p>
-        <ele-rw-table :height="500" ref="table1" row-key="name"
+        <custom-table :height="500" ref="table1" row-key="name"
                       :table-data="tableData"
                       :table-cols="tableCols2">
             <template #expand="{row,rowIndex,$rowIndex}">
@@ -32,16 +32,16 @@
                     <span style="margin-left: 10px">:{{row[key]}}</span>
                 </div>
             </template>
-        </ele-rw-table>
+        </custom-table>
         <code-panel>
             <highlightjs language='javascript' :code="code2"/>
         </code-panel>
         <p>通过设置expandRender的方式设置展开行内容</p>
-        <ele-rw-table :height="500" ref="table2" row-key="name"
+        <custom-table :height="500" ref="table2" row-key="name"
                       :expand-render="renderExpand"
                       :table-data="tableData"
                       :table-cols="tableCols2">
-        </ele-rw-table>
+        </custom-table>
         <code-panel>
             <highlightjs language='javascript' :code="code3"/>
         </code-panel>
@@ -80,7 +80,7 @@ const code1 = `
                     <span class="btn" @click="check2">勾选王小虎2(传对象)</span>
                     <span class="btn" @click="setAll">全选</span>
                 </div>
-                <ele-rw-table :height="500" ref="table" row-key="name"
+                <custom-table :height="500" ref="table" row-key="name"
                       :table-data="tableData"
                       :table-cols="tableCols"/>
             </template>
@@ -132,7 +132,7 @@ const code2 = `
                     <span class="btn" @click="expand2">展开王小虎2(传对象)</span>
                     <span class="btn" @click="setAllExpand">全展开</span>
                 </div>
-                <ele-rw-table :height="500" ref="table" row-key="name"
+                <custom-table :height="500" ref="table" row-key="name"
                       :table-data="tableData"
                       :table-cols="tableCols">
                     <template #expand="{row,rowIndex,$rowIndex}">
@@ -141,7 +141,7 @@ const code2 = `
                             <span style="margin-left: 10px">:{{row[key]}}</span>
                         </div>
                     </template>
-                </ele-rw-table>
+                </custom-table>
             </template>
             <script>
                  const template = {
@@ -192,11 +192,11 @@ const code3 = `
                     <span class="btn" @click="expand2">展开王小虎2(传对象)</span>
                     <span class="btn" @click="setAllExpand">全展开</span>
                 </div>
-                <ele-rw-table :height="500" ref="table" row-key="name"
+                <custom-table :height="500" ref="table" row-key="name"
                       :expand-render="renderExpand"
                       :table-data="tableData"
                       :table-cols="tableCols">
-                </ele-rw-table>
+                </custom-table>
             </template>
             <script type="text/jsx">
                  const template = {

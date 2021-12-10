@@ -1,13 +1,11 @@
 <script type="text/jsx">
 import {ASC, DESC} from "./store";
-import {isDefined, mapping} from "@src/utils/index";
-import {addClass, off, on, removeClass} from "@src/utils/dom";
-import {objectToStyleString} from "@src/utils";
-import {resolveClass, resolveStyle} from "./utils";
+import {isDefined, mapping, objectToStyleString, resolveClass, resolveStyle} from "./utils";
+import {addClass, off, on, removeClass} from "@well24/utils";
 import {TABLE} from "./table-config";
 
 export default {
-    name: "table-header",
+    name: "TableHeader",
     inject: ['table', 'store'],
     props: {
         fixed: {

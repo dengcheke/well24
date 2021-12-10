@@ -1,5 +1,3 @@
-import {randomString} from "@src/utils";
-
 export const RowCheck = 'row-check';//fn( row, checked, checkSet)
 export const CheckChange = 'check-change'; //fn (checkSet)
 
@@ -28,6 +26,6 @@ export const TableEvent = {
 
 
 export const TABLE = Object.freeze({
-    $SortCaret: randomString(16),
-    $CheckBox: randomString(16)
+    $SortCaret: "$$SortCaret",
+    $CheckBox: "$$CheckBox"
 })

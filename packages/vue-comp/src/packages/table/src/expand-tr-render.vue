@@ -1,13 +1,7 @@
 <script type="text/jsx">
-import {mapping} from "@src/utils/index";
-import CollapseTransition from '../../collapse-transition';
-
-const noop = function (h) {
-    return h('div', 'your expandContent here!')
-};
+import {mapping} from "./utils";
 export default {
-    name: "expand-tr-render",
-    components: {CollapseTransition},
+    name: "ExpandTrRender",
     inject: ['table', 'store'],
     props: ['row', 'index', 'domIndex'],
     computed: {

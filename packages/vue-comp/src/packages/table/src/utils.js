@@ -1,4 +1,6 @@
 //table 全局 id
+import {toKebabCase} from "@well24/utils";
+
 let tableGlobalId = 0;
 
 export function getTableId() {
@@ -240,4 +242,53 @@ function threeBezier(t, p1, p2, cp1, cp2,) {
         3 * cy2 * t * t * (1 - t) +
         y2 * t * t * t;
     return [x, y];
+}
+
+
+export function treeToArray(root,childKey='children',dfs=true){
+    let queue = [].concat(root), res = [];
+    while(queue.length){
+        const first = queue.shift();
+        res.push(first);
+        if(first[childKey] && Array.isArray(first[childKey])){
+            queue = dfs
+                ? [...first[childKey],...queue] //深度
+                : [...queue,...first[childKey]] //广度
+        }
+    }
+    return res;
+}
+
+export function mapping(attrName, mapper) {
+    const res = {};
+    Object.keys(mapper).forEach(key => {
+        const value = mapper[key];
+        let fn;
+        if (typeof value === 'string') {
+            fn = function () {
+                return this[attrName] ? this[attrName][value] : null;
+            };
+        } else if (typeof value === 'function') {
+            fn = function () {
+                return value.call(this, this[attrName]);
+            };
+        } else {
+            console.error('invalid value type');
+        }
+        if (fn) {
+            res[key] = fn;
+        }
+    });
+    return res;
+}
+
+export function isDefined(obj) {
+    return !(obj === null || obj === undefined)
+}
+
+export function objectToStyleString(obj) {
+    return Object.keys(obj).reduce((res, key) => {
+        res += `${toKebabCase(key)}:${obj[key]};\n`
+        return res;
+    }, '')
 }

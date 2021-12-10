@@ -1,9 +1,8 @@
 <script type="jsx">
-import {mapping} from "@src/utils";
-import {resolveClass, resolveStyle} from "./utils";
+import {mapping, resolveClass, resolveStyle} from "./utils";
 
 export default {
-    name: "tfoot-tr-render",
+    name: "TfootTrRender",
     inject: ['table', 'store'],
     props: ['row', 'domIndex', 'index', 'fixed'],
     computed: {

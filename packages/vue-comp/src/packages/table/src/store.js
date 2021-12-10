@@ -1,10 +1,11 @@
 import Vue from 'vue';
-import {isDefined, treeToArray} from "@src/utils/index";
 import {
     getColId,
+    isDefined,
     isNotEmptyArray,
     moveItemNewHasInOld,
     parseWidth,
+    treeToArray,
     walkTreeNode
 } from "./utils";
 import {TableEvent} from "./table-config";
@@ -37,8 +38,8 @@ export function ColumnNode(col) {
         parent: null,//父节点
         children: [],//子节点,columnNode
 
-        _noRightBorder:false,//是父节点最后的一个子节点
-        _noShadowRightBorder:false,
+        _noRightBorder: false,//是父节点最后的一个子节点
+        _noShadowRightBorder: false,
     };
     Object.defineProperty(node, '_uid', {
         value: `col_${getColId()}`,
@@ -94,7 +95,7 @@ const TableStore = Vue.extend({
             checkTrigger: 1, //勾选项变化,不影响renderList, table: emit event | tobody: update class
             expandTrigger: 1, //展开行变化,影响renderList,  table: emit event,
             treeExpandTrigger: 1,//树形展开变化,影响renderList, table: emit event
-            sortChangeTrigger:1,
+            sortChangeTrigger: 1,
         }
     },
     methods: {
@@ -117,9 +118,9 @@ const TableStore = Vue.extend({
         _setNodeOtherInfo(nodes) {
             const last = nodes[nodes.length - 1];
             last._noRightBorder = true;
-            nodes.find((item,idx)=>{
-                let i = nodes[idx+1];
-                if(item.fixed==='left' && i && i.fixed!=='left'){
+            nodes.find((item, idx) => {
+                let i = nodes[idx + 1];
+                if (item.fixed === 'left' && i && i.fixed !== 'left') {
                     return (item._noShadowRightBorder = true);
                 }
             });

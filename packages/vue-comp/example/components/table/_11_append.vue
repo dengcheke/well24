@@ -10,7 +10,7 @@
             实现无限滚动加载，如下
         </p>
         <p>设置resetScrollOnDataChange 阻止当数据更新时回到顶部</p>
-        <ele-rw-table height="auto" :max-height="500" ref="table"
+        <custom-table height="auto" :max-height="500" ref="table"
                       :reset-scroll-on-data-change="false"
                       :table-data="tableData"
                       :table-cols="tableCols">
@@ -19,7 +19,7 @@
                     正在加载数据。。。{{ leftTime }}
                 </div>
             </template>
-        </ele-rw-table>
+        </custom-table>
         <code-panel>
             <highlightjs language='javascript' :code="code1"/>
         </code-panel>
@@ -46,7 +46,7 @@ const col = [
 ];
 const code1 = `
             <template>
-                <ele-rw-table height="auto" :max-height="500" ref="table"
+                <custom-table height="auto" :max-height="500" ref="table"
                       :reset-scroll-on-data-change="false"
                       :table-data="tableData"
                       :table-cols="tableCols">
@@ -55,7 +55,7 @@ const code1 = `
                             正在加载数据。。。{{ leftTime }}
                         </div>
                     </template>
-                </ele-rw-table>
+                </custom-table>
             </template>
             <script>
                  import 'intersection-observer';
