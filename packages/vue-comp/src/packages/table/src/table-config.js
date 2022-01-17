@@ -24,7 +24,6 @@ export const TableEvent = {
     CellClick:CellClick
 }
 
-
 export const TABLE = Object.freeze({
     $SortCaret: "$$SortCaret",
     $CheckBox: "$$CheckBox"
