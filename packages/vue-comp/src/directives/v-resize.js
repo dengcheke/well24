@@ -23,12 +23,14 @@ const cursorMap = {
 }
 
 function checkProp(obj) {
+    if(obj === undefined || obj === null) obj = {};
     if(obj instanceof  Function){
         obj = {
             onResize: obj
         }
     }
     const res = {};
+    res.enable = obj !== false;
     Object.keys(defaultOptions).forEach(key => {
         res[key] = obj[key] || defaultOptions[key]
     })
@@ -42,11 +44,13 @@ export const vResize = {
                 this.rect = el.getBoundingClientRect();
                 this.target = el;
                 const off = on(document, 'pointermove', rafThrottle((e) => {
+                    if(!this.enable) return;
                     this.rect = el.getBoundingClientRect();
                     if (this.isDragged) return
                     this.checkHit(e.clientX, e.clientY);
                 }));
                 const off2 = on(document, 'pointerleave', () => {
+                    if(!this.enable) return;
                     this.isResizable = false;
                     this.isDragged = false;
                     this.isResizing = false;
@@ -57,11 +61,12 @@ export const vResize = {
                     document.body.style.cursor = ''
                 })
                 return {
+                    enable: true,
                     isResizable: false,
                     isDragged: false,
                     isResizing: false,
                     direction: null,
-                    ...checkProp(binding.value || {})
+                    ...checkProp(binding.value)
                 }
             },
             methods: {
@@ -124,6 +129,7 @@ export const vResize = {
             }
         });
         const off = dragHelper(document.body, ({e, type, state, cancel}) => {
+            if(!_state.enable) return;
             if (type === 'start') {
                 if (state.isResizable) {
                     e.preventDefault();

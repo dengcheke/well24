@@ -7,7 +7,7 @@
         </custom-scrollbar>
         <collapse-panel :expand.sync="expand" title="xxxxxx">
             <div class="content" style="height: auto" v-click-outside="handleClickOutside">
-                <custom-image lazy v-resize="handleResize"
+                <custom-image lazy v-resize="vv"
                               style="width: 500px;height: 500px;"
                               :src="src"/>
             </div>
@@ -33,9 +33,13 @@ export default {
         resize:vResize
     },
     data(){
+        setTimeout(()=>{
+            this.vv = true
+        },5000)
         return {
             load:true,
             expand:true,
+            vv:false,
             src:'https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg'
         }
     },
