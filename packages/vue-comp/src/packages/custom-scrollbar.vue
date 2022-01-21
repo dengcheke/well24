@@ -2,7 +2,7 @@
     <div class="custom-scrollbar" :style="calcElStyle()">
         <div class="scrollbar__wrap" ref="wrap"
              :style="calcWrapStyle()" @scroll.passive="handleScroll($event)">
-            <div class="scrollbar__view" :style="viewStyle"
+            <div class="scrollbar__view" :style="calcViewStyle()"
                  :class="viewClass" ref="view">
                 <slot/>
             </div>
@@ -42,11 +42,16 @@ export default {
         maxHeight: {
             default: null,
             type: Number
-        }
+        },
+        inheritWidth: {
+            type: Boolean,
+            default: true
+        },
     },
     data() {
         let barWidth = Math.ceil(getScrollbarWidth());
         return {
+            elWidth:0,//宽度
             barWidth: barWidth,//滚动条宽度
             sizeWidth: 0,
             sizeHeight: 0,
@@ -54,8 +59,8 @@ export default {
             moveY: 0,
             viewHeight: 0,
             viewWidth: 0,
-            scrollLeft:0,
-            scrollTop:0,
+            scrollLeft: 0,
+            scrollTop: 0,
         }
     },
     mounted() {
@@ -71,6 +76,7 @@ export default {
                 const elEn = entries.find(i => i.target === el);
                 if (elEn) {
                     update = true;
+                    this.elWidth = elEn.contentRect.width;
                 }
                 const viewEn = entries.find(i => i.target === view);
                 if (viewEn) {
@@ -101,7 +107,7 @@ export default {
         },
         handleScroll(e) {
             const wrap = this.$refs.wrap;
-            const {scrollTop,scrollLeft,clientHeight,clientWidth} = wrap;
+            const {scrollTop, scrollLeft, clientHeight, clientWidth} = wrap;
             this.scrollTop = scrollTop;
             this.scrollLeft = scrollLeft;
             this.moveY = ((scrollTop * 100) / clientHeight);
@@ -142,8 +148,15 @@ export default {
                 top: wrap.scrollHeight,
                 behavior: smooth ? "smooth" : "auto"
             }))
+        },
+        calcViewStyle(){
+            const style = {
+                ...(this.viewStyle || {}),
+                width: this.inheritWidth ? this.elWidth + 'px' : null
+            }
+            return style;
         }
-    }
+    },
 }
 </script>
 
@@ -154,7 +167,7 @@ export default {
     overflow: hidden;
 
     &:hover {
-        &  > .scrollbar__bar {
+        & > .scrollbar__bar {
             opacity: 1;
             transition: opacity 340ms ease-out;
         }
@@ -164,12 +177,14 @@ export default {
         overflow: scroll;
     }
 
-    .scrollbar__view{
+    .scrollbar__view {
+        position: relative;
         display: inline-block;
+        vertical-align: bottom;
         margin: 0;
         padding: 0;
-        vertical-align: bottom;
     }
+
     .scrollbar__bar {
         position: absolute;
         right: 2px;
