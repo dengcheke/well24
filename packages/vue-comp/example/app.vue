@@ -54,6 +54,14 @@ export default {
                     children: [
                         {label:"base",pathName: '/scrollbar/1'}
                     ]
+                },
+                {
+                    label:'directives',
+                    children: [
+                        {label:"loading",pathName: '/directives/loading'},
+                        {label:"resize",pathName: '/directives/resize'},
+                        {label:"transfer",pathName: '/directives/transfer'},
+                    ]
                 }
             ]
         }

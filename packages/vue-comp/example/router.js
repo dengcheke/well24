@@ -14,7 +14,9 @@ import tableBase from './components/table/_1_base';
 import dialogNested from './components/dialog/_2_nested';
 import dialogBase from './components/dialog/_1_base';
 import scrollbar from './components/scrollbar/_1_scrollbar'
-
+import loading from './components/directives/loading';
+import resize from './components/directives/resize';
+import transfer from './components/directives/transfer-dom';
 Vue.use(VueRouter)
 const tableRoutes = [
     {path: '/table/1', component: tableBase},
@@ -33,6 +35,9 @@ const tableRoutes = [
     {path: "/scrollbar/1", component: scrollbar},
     {path: "/dialog/2", component: dialogNested},
 
+    {path: "/directives/loading", component: loading},
+    {path: "/directives/resize", component: resize},
+    {path: "/directives/transfer", component: transfer},
     {path: '*', redirect: '/table/1'}
 ]
 const router = new VueRouter({

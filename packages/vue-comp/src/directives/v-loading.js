@@ -1,5 +1,5 @@
 import Loading from '@src/packages/loading'
-
+import Vue from 'vue'
 const map = /*#__PURE__*/new WeakMap();
 const toggleLoading = (el, binding) => {
     const mask = map.get(el);

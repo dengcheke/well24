@@ -1,5 +1,5 @@
 import {addClass, clamp, dragHelper, getStyle, on, rafThrottle, removeClass} from "@well24/utils";
-
+import Vue from 'vue';
 const map = /*#__PURE__*/new Map();
 
 const defaultOptions = {
@@ -132,7 +132,7 @@ export const vResize = {
         const off = dragHelper(document.body, ({e, type, state}) => {
             if (!vm.enable) return;
             if (type === 'start') {
-                if (state.isResizable && state.direction) {
+                if (vm.isResizable && vm.direction) {
                     el.style.userSelect = 'none';
                     vm.isDragged = true;
                     state.rect = el.getBoundingClientRect();
@@ -154,7 +154,7 @@ export const vResize = {
                 return false;
             } else if (type === 'move') {
                 vm.isResizing = true;
-                const {rect, x, y, direction, sizeRange} = state.rect;
+                const {rect, x, y, direction, sizeRange} = state;
                 const drs = direction.split('-');
                 const [minWidth, maxWidth, minHeight, maxHeight] = sizeRange;
                 const moveX = e.clientX - x;
@@ -180,9 +180,9 @@ export const vResize = {
                     event: e,
                 })
             } else if (type === 'end') {
-                state.isResizable = false;
-                state.isDragged = false;
-                state.isResizing = false;
+                vm.isResizable = false;
+                vm.isDragged = false;
+                vm.isResizing = false;
                 el.style.userSelect = 'auto';
             }
         }, {});
