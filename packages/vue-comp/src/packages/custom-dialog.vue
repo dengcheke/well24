@@ -171,17 +171,20 @@ export default {
                             mousedown: this.promoteDialogZIndex
                         },
                         ref: 'dialog'
-                    }}>
-                        <div class="dialog__title" ref="title">
-                            {this.$scopedSlots.title ? this.$scopedSlots.title() : (this.$slots.title || null)}
-                        </div>
-                        <div class="dialog__content">
-                            {this.$scopedSlots.default ? this.$scopedSlots.default() : (this.$slots.default || null)}
-                        </div>
-                        <div class="dialog__footer">
-                            {this.$scopedSlots.footer ? this.$scopedSlots.footer() : (this.$slots.footer || null)}
-                        </div>
-                    </div>
+                    }}>{
+                        [
+                            <div class="dialog__title" ref="title">
+                                {this.$scopedSlots.title ? this.$scopedSlots.title() : (this.$slots.title || null)}
+                            </div>,
+                            <div class="dialog__content">
+                                {this.$scopedSlots.default ? this.$scopedSlots.default() : (this.$slots.default || null)}
+                            </div>,
+                            <div class="dialog__footer">
+                                {this.$scopedSlots.footer ? this.$scopedSlots.footer() : (this.$slots.footer || null)}
+                            </div>,
+                            this.resizable ? <i class="icon-w24 icon-w24-resize-br"/> : null
+                        ].filter(Boolean)
+                    }</div>
                 </div>
             </transition>
         </div>
@@ -332,7 +335,7 @@ export default {
             const {x, y, dialogRect, wrapRect, direction, sizeRange} = state;
             const [minWidth, maxWidth, minHeight, maxHeight] = sizeRange;
             const {left, top, width, height} = dialogRect;
-            const {left:Left, top:Top} = wrapRect;
+            const {left: Left, top: Top} = wrapRect;
             const moveX = e.clientX - x;
             const moveY = e.clientY - y;
             const drs = direction.split('-');
@@ -413,7 +416,7 @@ export default {
             immediate: true
         },
         appendToBody: function (v) {
-            if(this.show){
+            if (this.show) {
                 this.promoteDialogZIndex();
                 this.placeAtCenter();
             }
@@ -489,6 +492,15 @@ export default {
             position: fixed !important;
             width: 100% !important;
             height: 100% !important;
+        }
+
+        .icon-w24-resize-br {
+            position: absolute;
+            color: white;
+            z-index: 1;
+            right: 0;
+            bottom: 0;
+            font-size: 24px;
         }
     }
 
