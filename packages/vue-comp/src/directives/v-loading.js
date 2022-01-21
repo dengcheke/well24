@@ -1,8 +1,6 @@
-import Vue from 'vue'
 import Loading from '@src/packages/loading'
 
-const map = new WeakMap();
-
+const map = /*#__PURE__*/new WeakMap();
 const toggleLoading = (el, binding) => {
     const mask = map.get(el);
     if (!mask) return;
@@ -37,4 +35,7 @@ export const vLoading = {
         map.delete(el);
         mask?.$destroy();
     }
+}
+vLoading.install = function (Vue) {
+    Vue.directive('loading', vLoading)
 }

@@ -13,7 +13,7 @@ const map = /*#__PURE__*/new WeakMap();
 export const vMouseWheel = {
     bind(el, binding) {
         const _off = map.get(el);
-        if(_off){
+        if (_off) {
             _off()
             map.delete(el)
         }
@@ -21,13 +21,16 @@ export const vMouseWheel = {
             passive: binding.modifiers.passive || false,
             capture: binding.modifiers.capture || false,
         });
-        map.set(el,off);
+        map.set(el, off);
     },
     unbind(el) {
         const _off = map.get(el);
-        if(_off){
+        if (_off) {
             _off()
             map.delete(el)
         }
     }
 };
+vMouseWheel.install = function (Vue) {
+    Vue.directive('mouseWheel', vMouseWheel)
+}

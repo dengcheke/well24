@@ -1,6 +1,6 @@
 let clickInEvent
 
-const record = new Map();
+const record = /*#__PURE__*/new Map();
 document.addEventListener('mousedown', e => (clickInEvent = e))
 document.addEventListener('mouseup', e => {
     record.forEach((value) => {
@@ -43,4 +43,8 @@ export const vClickOutside = {
     unbind(el) {
         record.delete(el)
     }
+}
+
+vClickOutside.install = function (Vue) {
+    Vue.directive('clickOutside', vClickOutside)
 }

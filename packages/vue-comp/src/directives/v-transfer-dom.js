@@ -1,4 +1,4 @@
-import {addClass,removeClass} from "@well24/utils";
+import {addClass, removeClass} from "@well24/utils";
 
 const map = /*#__PURE__*/new WeakMap();
 
@@ -14,10 +14,10 @@ function getTarget(node) {
     return null;
 }
 
-function _unbind(el){
-    removeClass(el,'v-transfer-dom');
+function _unbind(el) {
+    removeClass(el, 'v-transfer-dom');
     const transferData = map.get(el);
-    if(!transferData) return;
+    if (!transferData) return;
     const {hasMovedOut, parentNode, placeholder} = transferData;
     hasMovedOut && parentNode?.replaceChild(el, placeholder);
     map.delete(el)
@@ -34,7 +34,7 @@ function _unbind(el){
 
 export const vTransferDom = {
     inserted(el, {value}, vnode) {
-        addClass(el,'v-transfer-dom');
+        addClass(el, 'v-transfer-dom');
         const parentNode = el.parentNode;//父节点
         const placeholder = document.createElement('div');//占位元素
         let hasMovedOut = false;
@@ -44,7 +44,7 @@ export const vTransferDom = {
             target.appendChild(el) // el移动到新位置
             hasMovedOut = true;
         }
-        map.set(el,{
+        map.set(el, {
             parentNode: parentNode,//父元素
             placeholder: placeholder,//占位元素
             target: target,//目标元素
@@ -53,7 +53,7 @@ export const vTransferDom = {
     },
     componentUpdated(el, {value}, vnode) {
         const transferData = map.get(el);
-        if(!transferData) return;
+        if (!transferData) return;
         const {parentNode, placeholder, target, hasMovedOut} = transferData;
         const newTarget = getTarget(value); //新目标
         if (target === newTarget) return;
@@ -76,4 +76,7 @@ export const vTransferDom = {
         _unbind(el);
         map.delete(el);
     }
+}
+vTransferDom.install = function (Vue) {
+    Vue.directive('transferDom', vTransferDom)
 }

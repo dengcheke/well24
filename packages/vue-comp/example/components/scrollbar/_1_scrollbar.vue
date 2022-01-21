@@ -33,6 +33,15 @@
                 </div>
             </custom-scrollbar>
         </div>
+        <div style="background-color: #69d6f1;width: 200px;margin-bottom: 20px;
+        height: 200px;min-width: 100px;min-height: 100px" v-resize="{directions:'all'}"></div>
+        <div style="width: 100%;height: 400px;position: relative" v-click-outside="handleClickOutside">
+            <div style="background-color: #5634e3;width: 200px;margin-bottom: 20px;
+            position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%);
+            height: 200px;min-width: 100px;min-height: 100px" v-resize="{directions:'all'}"></div>
+        </div>
+
+        <div style="margin-bottom: 200px" />
 <!--
         <collapse-panel :expand.sync="expand" title="xxxxxx">
             <div class="content" style="height: auto" v-click-outside="handleClickOutside">
@@ -58,7 +67,7 @@ export default {
     components: {CustomImage, CollapsePanel, EmptySlot},
     directives:{
         loading:vLoading,
-        clickOutside:vClickOutside,
+        clickOutside: vClickOutside,
         resize:vResize
     },
     data(){
@@ -75,7 +84,8 @@ export default {
         },
         handleResize(entry){
             console.log(1)
-        }
+        },
+
     }
 }
 </script>
