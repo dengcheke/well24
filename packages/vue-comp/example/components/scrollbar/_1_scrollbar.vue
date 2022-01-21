@@ -36,8 +36,18 @@ export default {
         setTimeout(()=>{
             this.vv = true
         },5000)
+        setInterval(()=>{
+            this.time +=1;
+        },1000)
         return {
-            load:true,
+            time:1,
+            load: {
+                show:true,
+                boxClass:"xxxx",
+                content:(h)=>{
+                    return this.time;
+                }
+            },
             expand:true,
             vv:false,
             src:'https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg'

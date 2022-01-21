@@ -6,11 +6,19 @@ const map = new WeakMap();
 const toggleLoading = (el, binding) => {
     const mask = map.get(el);
     if (!mask) return;
-    const show = binding?.value || false;
-    mask.show = show;
-    if(show){
+    const param = binding.value;
+    if (Object.prototype.toString.call(param) === '[object Object]') {
+        mask.show = param.show !== false;
+        mask.content = param.content;
+        mask.boxClass = param.boxClass || "";
+    } else {
+        mask.show = param !== false
+        mask.content = null;
+        mask.boxClass = "";
+    }
+    if (mask.show) {
         el.appendChild(mask.$el);
-    }else{
+    } else {
         el.contains(mask.$el) && el.removeChild(mask.$el);
     }
 }

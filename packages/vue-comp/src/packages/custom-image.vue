@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import {addIntersectListener, asyncWrap, loadImg, sleep} from "@well24/utils";
+import {addIntersectListener, asyncWrap, loadImg} from "@well24/utils";
 
 const NONE = 'none', LOADING = 'loading', LOADED = 'loaded', ERROR = 'error';
 export default {
@@ -37,7 +37,7 @@ export default {
     inheritAttrs: false,
     data() {
         return {
-            token: 0,//标记，当前请求的flag, 判断是否是当前请求
+            token: 0,
             status: NONE,
         }
     },
@@ -50,38 +50,29 @@ export default {
         },
         isError() {
             return this.status === ERROR
-        },
+        }
     },
     mounted() {
-        let curOff = null;
-        const rm1 = this.$watch('lazy', (lazy) => {
-            if (!lazy) {
-                curOff?.();
-                curOff = null;
-                if (this.status === NONE && this.src) {
-                    this.load();
-                }
-            }
-        });
-        const rm2 = this.$watch('src', nsrc => {
+        let watchOff = null;
+        const rm = this.$watch('src', nsrc => {
             this.status = NONE;
-            if (this.lazy && !curOff) {
-                curOff = addIntersectListener(this.$el, entry => {
-                    if (entry.isIntersecting && this.src) {
-                        curOff();
-                        curOff = null;
-                        this.$emit('intersected');
-                        this.load()
-                    }
-                }, {threshold: this.ratio})
+            if (this.lazy) {
+                if (!watchOff)
+                    watchOff = addIntersectListener(this.$el, entry => {
+                        if (entry.isIntersecting && this.src) {
+                            watchOff();
+                            watchOff = null;
+                            this.$emit('intersected', entry);
+                            this.load()
+                        }
+                    }, {threshold: this.ratio})
             } else {
                 nsrc && this.load();
             }
         }, {immediate: true});
         this.$once("hook:beforeDestroy", () => {
-            rm1();
-            rm2();
-            curOff?.();
+            rm();
+            watchOff?.();
         })
     },
     methods: {
@@ -93,10 +84,15 @@ export default {
             if (token !== this.token) return;
             if (err !== undefined) {
                 this.status = ERROR;
-                this.$emit('status-change', 'error');
+                this.$emit('status-change', {
+                    type: 'error',
+                    msg: err
+                });
             } else if (result) {
                 this.status = LOADED;
-                this.$emit('status-change', 'success');
+                this.$emit('status-change', {
+                    type: 'success'
+                });
             }
         }
     }

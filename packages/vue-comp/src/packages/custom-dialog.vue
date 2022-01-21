@@ -1,6 +1,8 @@
 <script type="text/jsx">
 import {off, on, rafThrottle} from "@well24/utils";
 import {vTransferDom} from "@src/directives/v-transfer-dom";
+import isNil from "lodash/isNil";
+import {vResize} from "@src/directives/v-resize";
 
 const minZIndex = 1000; //最小的zIndex
 let zIndex = minZIndex; //当前的zIndex
@@ -28,20 +30,14 @@ on(window, 'resize', () => {
     winShowCache.forEach(win => {
         !win.fullScreen && !win.keepPosition && win.placeAtCenter();
     })
-})
+});
 let gId = 1;//全局id
-const storeTemplate = {
-    width: null,
-    height: null,
-    left: null,
-    right: null,
-    top: null,
-    bottom: null,
-};
+
 export default {
     name: "CustomDialog",
     directives: {
         'transfer-dom': vTransferDom,
+        'resize': vResize
     },
     props: {
         classList: {
@@ -51,18 +47,21 @@ export default {
         },
         width: {
             type: Number | String,
-            default: 600,
-            desc: '宽度'
+            desc: 'dialog宽度'
         },
         height: {
             type: Number | String,
             default: null,
-            desc: '高度'
+            desc: 'dialog高度'
         },
         padding: {
             type: Array,
             default: () => [0, 0, 0, 0],
             desc: 'dialog距离父元素的边距,限制拖拽范围,上右下左'
+        },
+        paddingTarget: {
+            default: null,
+            desc: `null(dialog) / 'header'(title) / HTMLElement`
         },
         keepPosition: {
             type: Boolean,
@@ -72,7 +71,7 @@ export default {
         draggable: {
             type: Boolean,
             default: true,
-            desc: '是否可拖动,只有表头可拖动,设置为true,需要header内容可见'
+            desc: '是否可拖动,只有表头可拖动'
         },
         show: {
             type: Boolean,
@@ -98,11 +97,23 @@ export default {
             type: Boolean,
             default: true,
             desc: '按下esc是否隐藏,仅在全屏或者shadow模式下有效'
+        },
+        resize:{
+            /*是否可拖拽改变大小, false/true/{
+                directions:all/top/left/bottom/right
+            }*/
+            default: false,
         }
     },
     data() {
+        this._info = {
+            left: null,
+            top: null,
+            size: [0, 0]
+        };
         return {
             id: gId++,
+            isDrag:false,
         }
     },
     computed: {
@@ -116,6 +127,9 @@ export default {
             pre[cur] = true;
             return pre;
         }, {});
+        const style = {};
+        !isNil(this.width) && (style.width = this.parsePx(this.width));
+        !isNil(this.height) && (style.height = this.parsePx(this.height));
         return <div class="custom-dialog-placeholder" key={key}>
             <transition name="custom-dialog-fade-out">
                 <div {...{
@@ -143,16 +157,29 @@ export default {
                             'custom-dialog': true,
                             'full-screen': this.fullScreen,
                         },
-                        style: {
-                            width: this.parsePx(this.width),
-                            height: this.parsePx(this.height)
-                        },
+                        directives: [
+                            {
+                                name:'resize',
+                                value: (this.isDrag || this.fullScreen)
+                                    ? false
+                                    : (this.resize === false
+                                            ? false
+                                            : {
+                                                ...this.resize,
+                                                onResize: this.onResize
+                                            }
+                                    ),
+                            }
+                        ],
+                        style: style,
                         on: {
                             mousedown: this.promoteDialogZIndex
                         },
                         ref: 'dialog'
                     }}>
-                        <div class="dialog__title" ref="title" style={{cursor: this.draggable ? 'move' : 'auto'}}>
+                        <div class="dialog__title"
+                             ref="title"
+                             style={{cursor: this.draggable ? 'move' : 'auto'}}>
                             {this.$scopedSlots.title ? this.$scopedSlots.title() : (this.$slots.title || null)}
                         </div>
                         <div class="dialog__content">
@@ -165,30 +192,40 @@ export default {
                 </div>
             </transition>
         </div>
-
+    },
+    mounted() {
+        const offDrag = this.initDrag();
+        this.$once('hook:beforeDestroy', () => {
+            offDrag();
+            removeFromCache(this);
+        })
     },
     methods: {
-        // 新显示的dialog，z-index提升到最上层
-        promoteDialogZIndex() {
-            const wrapper = this.$refs.dialogWrapper;
-            if (winShowCache.length > 1) {
-                zIndex += 1;
-                wrapper.style.zIndex = zIndex; //点击的窗口提到最上层
-            } else {
-                zIndex = minZIndex;
+        onResize({direction, oldSize, size}) {
+            const [oldw, oldh] = oldSize;
+            const [w, h] = size;
+            const el = this.$refs.dialog
+            const {left, top} = this._info;
+            let newTop, newLeft;
+            if (direction.indexOf('top') !== -1 && this._info.size[1] !== oldh) {
+                newTop = oldh + top - h;
+                el.style.top = newTop + 'px';
+                this._info.top = newTop;
             }
-        },
-        clearDrag() {
-            if (this._unBindDrag) {
-                this._unBindDrag();
-                this._unBindDrag = null;
+            if (direction.indexOf('left') !== -1 && this._info.size[0] !== oldw) {
+                newLeft = oldw + left - w;
+                el.style.left = newLeft + 'px';
+                this._info.left = newLeft;
             }
+            this._info.size = [oldw, oldh]
         },
         initDrag() {
             const dialog = this.$refs.dialog,
                 wrap = dialog.parentNode,
                 title = this.$refs.title;
             const titleOnMousedown = (e) => {
+                if (!this.draggable) return;
+                this.isDrag = true
                 //take snapshot
                 document.body.style.userSelect = 'none';
                 //cur position
@@ -203,7 +240,15 @@ export default {
                     Left = wrapRect.left,
                     Top = wrapRect.top;
 
-                const rect = dialog.getBoundingClientRect();//dragwindow的定位盒子
+                const dialogRect = dialog.getBoundingClientRect();
+
+                const rect = this.paddingTarget instanceof HTMLElement
+                    ? this.paddingTarget.getBoundingClientRect()
+                    : (this.paddingTarget === null ? dialogRect : title.getBoundingClientRect());
+                const offsetLeft = dialogRect.left - rect.left;
+                const offsetTop = dialogRect.top - rect.top;
+
+
                 const h = rect.height, w = rect.width, //初始位置
                     left = rect.left, top = rect.top;
 
@@ -228,10 +273,15 @@ export default {
                     _left = _left - Left;//boundingRect是相对于body的，这里计算相对wrap父元素的
                     _top = _top - Top;
                     // 移动当前元素
-                    dialog.style.left = `${_left >= 0 ? _left : 0}px`;
-                    dialog.style.top = `${_top >= 0 ? _top : 0}px`;
+                    const LEFT = (_left >= 0 ? _left : 0) + offsetLeft;
+                    const TOP = (_top >= 0 ? _top : 0) + offsetTop;
+                    dialog.style.left = `${LEFT}px`;
+                    dialog.style.top = `${TOP}px`;
+                    this._info.left = LEFT;
+                    this._info.top = TOP;
                 });
-                const onMouseup = function () {
+                const onMouseup = () => {
+                    this.isDrag = false;
                     off(document, 'mousemove', onMousemove);
                     off(document, 'mouseup', onMouseup);
                     document.body.style.userSelect = null;
@@ -241,8 +291,18 @@ export default {
                 return false;
             };
             on(title, 'mousedown', titleOnMousedown);
-            this._unBindDrag = () => {
+            return () => {
                 off(title, 'mousedown', titleOnMousedown);
+            }
+        },
+        // 新显示的dialog，z-index提升到最上层
+        promoteDialogZIndex() {
+            const wrapper = this.$refs.dialogWrapper;
+            if (winShowCache.length > 1) {
+                zIndex += 1;
+                wrapper.style.zIndex = zIndex; //点击的窗口提到最上层
+            } else {
+                zIndex = minZIndex;
             }
         },
         placeAtCenter() {
@@ -290,20 +350,7 @@ export default {
             immediate: true
         },
         appendToBody: function (v) {
-            this.show && this.promoteDialogZIndex();
-            this.placeAtCenter();
-        },
-        draggable: {
-            handler: function (v) {
-                this.$nextTick(() => {
-                    if (v) {
-                        this.initDrag();
-                    } else {
-                        this.clearDrag();
-                    }
-                })
-            },
-            immediate: true
+            this.show && this.placeAtCenter();
         },
         show: {
             handler: function (v) {
@@ -313,7 +360,7 @@ export default {
                         winShowCache.push(this);
                         this.promoteDialogZIndex();
                         !this.fullScreen && !this.keepPosition && this.placeAtCenter();
-                    } else { //隐藏，从缓存中移除
+                    } else {
                         wrapper.style.zIndex = '1000';
                         removeFromCache(this);
                     }
@@ -322,10 +369,6 @@ export default {
             immediate: true
         }
     },
-    beforeDestroy() {
-        this.clearDrag();
-        removeFromCache(this);
-    }
 }
 </script>
 <style lang="less">

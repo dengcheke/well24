@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {addClass, dragHelper, on, rafThrottle, removeClass} from "@well24/utils";
+import {addClass, dragHelper, on, rafThrottle, removeClass,clamp} from "@well24/utils";
 
 const map = new Map();
 
@@ -9,7 +9,8 @@ const defaultOptions = {
     resizingClass: 'v-resizing',
     directions: ['bottom', 'right'],
     zoneSize: 5,
-    onResize:null
+    sizeRange: null, //[minWidth,maxWidth,minHeight,MaxHeight] 不传=无穷大
+    onResize: null
 }
 const cursorMap = {
     top: 'n-resize',
@@ -23,18 +24,32 @@ const cursorMap = {
 }
 
 function checkProp(obj) {
-    if(obj === undefined || obj === null) obj = {};
-    if(obj instanceof  Function){
+    if (obj === undefined || obj === null) obj = {};
+    if (obj === false) obj = {enable: false}
+    if (obj instanceof Function) {
         obj = {
             onResize: obj
         }
     }
     const res = {};
-    res.enable = obj !== false;
+    res.enable = obj.enable !== false;
     Object.keys(defaultOptions).forEach(key => {
         res[key] = obj[key] || defaultOptions[key]
     })
+    if (res.directions === 'all') {
+        res.directions = ['bottom', 'right', 'top', 'left']
+    }
+    let [minw, maxw, minh, maxh] = res.sizeRange || [];
+    minw = isNil(minw) ? 0 : +minw;
+    maxw = isNil(maxw) ? Infinity : +maxw;
+    minh = isNil(minh) ? 0 : +minh;
+    maxh = isNil(maxh) ? Infinity : +maxh;
+    res.sizeRange = [minw, maxw, minh, maxh]
     return res;
+
+    function isNil(v) {
+        return v === undefined || v === null || v === '' || isNaN(v)
+    }
 }
 
 export const vResize = {
@@ -44,13 +59,13 @@ export const vResize = {
                 this.rect = el.getBoundingClientRect();
                 this.target = el;
                 const off = on(document, 'pointermove', rafThrottle((e) => {
-                    if(!this.enable) return;
-                    this.rect = el.getBoundingClientRect();
+                    if (!this.enable) return;
                     if (this.isDragged) return
+                    this.rect = el.getBoundingClientRect();
                     this.checkHit(e.clientX, e.clientY);
                 }));
                 const off2 = on(document, 'pointerleave', () => {
-                    if(!this.enable) return;
+                    if (!this.enable) return;
                     this.isResizable = false;
                     this.isDragged = false;
                     this.isResizing = false;
@@ -74,8 +89,8 @@ export const vResize = {
                     const {rect, zoneSize} = this;
 
                     const isInside = (
-                        y >= rect.top - zoneSize && y <= rect.bottom + zoneSize &&
-                        x >= rect.left - zoneSize && x <= rect.right + zoneSize
+                        y >= rect.top && y <= rect.bottom &&
+                        x >= rect.left && x <= rect.right
                     )
 
                     if (!isInside) {
@@ -84,10 +99,10 @@ export const vResize = {
                         return
                     }
                     const checkMap = {
-                        top: Math.abs(y - rect.top) <= zoneSize,
-                        bottom: Math.abs(y - rect.bottom) <= zoneSize,
-                        left: Math.abs(x - rect.left) <= zoneSize,
-                        right: Math.abs(x - rect.right) <= zoneSize
+                        top: y - rect.top <= zoneSize,
+                        bottom: rect.bottom - y  <= zoneSize,
+                        left: x - rect.left <= zoneSize,
+                        right: rect.right - x <= zoneSize
                     }
 
                     const res = this.directions.sort().filter(item => checkMap[item])
@@ -112,24 +127,24 @@ export const vResize = {
                 },
                 resizingClass(newclass, oldclass) {
                     oldclass && removeClass(el, oldclass);
-                    this.isResizing &&  addClass(el, newclass);
+                    this.isResizing && addClass(el, newclass);
                 },
                 direction(newv) {
                     document.body.style.cursor = newv ? cursorMap[newv] : null
                 },
-                isResizable(v){
+                isResizable(v) {
                     v ? addClass(el, this.resizableClass) : removeClass(el, this.resizableClass)
                 },
-                isDragged(v){
+                isDragged(v) {
                     v ? addClass(el, this.draggedClass) : removeClass(el, this.draggedClass)
                 },
-                isResizing(v){
+                isResizing(v) {
                     v ? addClass(el, this.resizingClass) : removeClass(el, this.resizingClass)
                 }
             }
         });
         const off = dragHelper(document.body, ({e, type, state, cancel}) => {
-            if(!_state.enable) return;
+            if (!_state.enable) return;
             if (type === 'start') {
                 if (state.isResizable) {
                     e.preventDefault();
@@ -140,23 +155,26 @@ export const vResize = {
                 return false;
             } else if (type === 'move') {
                 if (!state.isDragged || !state.direction) return;
-                const drs = state.direction.split('-')
+                const rect = state.rect = el.getBoundingClientRect();
+                const drs = state.direction.split('-');
+                const [minWidth, maxWidth, minHeight, maxHeight] = state.sizeRange;
+                let width = null, height = null;
                 const frameMap = {
                     top() {
-                        const {rect} = this;
-                        this.target.style.height = `${rect.bottom - e.clientY}px`
+                        height = clamp(rect.bottom - e.clientY, minHeight, maxHeight)
+                        this.target.style.height = `${height}px`
                     },
                     bottom() {
-                        const {rect} = this;
-                        this.target.style.height = `${e.clientY - rect.top}px`
+                        height = clamp(e.clientY - rect.top, minHeight, maxHeight)
+                        this.target.style.height = `${height}px`
                     },
                     left() {
-                        const {rect} = this;
-                        this.target.style.width = `${rect.right - e.clientX}px`
+                        width = clamp(rect.right - e.clientX, minWidth, maxWidth)
+                        this.target.style.width = `${width}px`
                     },
                     right() {
-                        const {rect} = this;
-                        this.target.style.width = `${e.clientX - rect.left}px`
+                        width = clamp(e.clientX - rect.left, minWidth, maxWidth)
+                        this.target.style.width = `${width}px`
                     },
                 }
                 drs.forEach(dir => {
@@ -166,6 +184,8 @@ export const vResize = {
                     direction: state.direction,
                     target: state.target,
                     event: e,
+                    size: [width, height],
+                    oldSize: [rect.width, rect.height]
                 })
             } else if (type === 'end') {
                 state.isResizable = false;
