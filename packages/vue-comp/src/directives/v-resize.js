@@ -12,7 +12,7 @@ const defaultOptions = {
     sizeRange: null, //[minWidth,maxWidth,minHeight,MaxHeight] 不传=无穷大
     onResize: null
 }
-const cursorMap = {
+export const cursorMap = {
     top: 'n-resize',
     bottom: 's-resize',
     left: 'w-resize',

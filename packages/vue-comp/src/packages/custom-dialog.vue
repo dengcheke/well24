@@ -1,8 +1,8 @@
 <script type="text/jsx">
-import {off, on, rafThrottle} from "@well24/utils";
+import {clamp, dragHelper, getStyle, on, rafThrottle} from "@well24/utils";
 import {vTransferDom} from "@src/directives/v-transfer-dom";
 import isNil from "lodash/isNil";
-import {vResize} from "@src/directives/v-resize";
+import {cursorMap, vResize} from "@src/directives/v-resize";
 
 const minZIndex = 1000; //最小的zIndex
 let zIndex = minZIndex; //当前的zIndex
@@ -32,7 +32,11 @@ on(window, 'resize', () => {
     })
 });
 let gId = 1;//全局id
-
+const Event = Object.freeze({
+    None: 0,
+    Resize: 1,
+    Drag: 2
+});
 export default {
     name: "CustomDialog",
     directives: {
@@ -98,22 +102,27 @@ export default {
             default: true,
             desc: '按下esc是否隐藏,仅在全屏或者shadow模式下有效'
         },
-        resize:{
+        resize: {
             /*是否可拖拽改变大小, false/true/{
-                directions:all/top/left/bottom/right
+                directions:all/top/left/bottom/right,
+                zoneSize: 8
             }*/
+            type: Boolean | Object,
             default: false,
         }
     },
     data() {
-        this._info = {
-            left: null,
-            top: null,
-            size: [0, 0]
-        };
+        this.resizeOpts = {
+            zoneSize: 8,
+            directions: ['bottom', 'right'],
+        }
         return {
             id: gId++,
-            isDrag:false,
+            curEvent: null,
+
+            resizable: false,
+            isDragging: false,
+            isResizing: false,
         }
     },
     computed: {
@@ -157,29 +166,13 @@ export default {
                             'custom-dialog': true,
                             'full-screen': this.fullScreen,
                         },
-                        directives: [
-                            {
-                                name:'resize',
-                                value: (this.isDrag || this.fullScreen)
-                                    ? false
-                                    : (this.resize === false
-                                            ? false
-                                            : {
-                                                ...this.resize,
-                                                onResize: this.onResize
-                                            }
-                                    ),
-                            }
-                        ],
                         style: style,
                         on: {
                             mousedown: this.promoteDialogZIndex
                         },
                         ref: 'dialog'
                     }}>
-                        <div class="dialog__title"
-                             ref="title"
-                             style={{cursor: this.draggable ? 'move' : 'auto'}}>
+                        <div class="dialog__title" ref="title">
                             {this.$scopedSlots.title ? this.$scopedSlots.title() : (this.$slots.title || null)}
                         </div>
                         <div class="dialog__content">
@@ -194,106 +187,176 @@ export default {
         </div>
     },
     mounted() {
-        const offDrag = this.initDrag();
+        const dialog = this.$refs.dialog;
+        const title = this.$refs.title;
+        let direction = null, resizeHit = false;
+        const offResizeCheck = on(dialog, 'mousemove', rafThrottle((e) => {
+            if (!this.resizable || this.curEvent || this.fullScreen) return;
+            if (this.isDragging || this.isResizing) return;
+            const rect = dialog.getBoundingClientRect();
+            checkHit.call(this, e.clientX, e.clientY);
+
+            function checkHit(x, y) {
+                const {resizeOpts} = this;
+                const {zoneSize, directions} = resizeOpts;
+                const isInside = (
+                    y >= rect.top && y <= rect.bottom &&
+                    x >= rect.left && x <= rect.right
+                )
+
+                if (!isInside) {
+                    direction = null;
+                    resizeHit = false;
+                    return
+                }
+                const checkMap = {
+                    top: y - rect.top <= zoneSize,
+                    bottom: rect.bottom - y <= zoneSize,
+                    left: x - rect.left <= zoneSize,
+                    right: rect.right - x <= zoneSize
+                }
+
+                const res = directions.sort().filter(item => checkMap[item])
+
+                if (res.length) {
+                    direction = res.join('-')
+                    resizeHit = true
+                } else {
+                    direction = null
+                    resizeHit = false
+                }
+                dialog.style.cursor = direction ? cursorMap[direction] : null;
+            }
+        }));
+        const offDragDoc = dragHelper(document, ({e, type, state}) => {
+            if (!this.draggable && !this.resizable) return
+            if (this.fullScreen) return;
+            if (type === 'start') {
+                if (this.draggable && title.contains(e.target)) {
+                    this.curEvent = Event.Drag
+                    title.style.cursor = 'move';
+                    this.isDragging = true;
+                } else if (this.resizable && resizeHit) {
+                    this.curEvent = Event.Resize;
+                    title.style.cursor = null;
+                    document.body.style.userSelect = 'none';
+                    this.isResizing = true;
+                } else {
+                    this.curEvent = Event.None;
+                }
+                if (this.curEvent) {
+                    state.x = e.clientX;
+                    state.y = e.clientY;
+                    state.dialogRect = dialog.getBoundingClientRect();
+                    const wrap = dialog.parentNode;
+                    state.wrapRect = wrap.getBoundingClientRect();
+                    if (this.curEvent === Event.Drag) {
+                        state.padding = this.padding || [0, 0, 0, 0];
+                        const rect = this.paddingTarget instanceof HTMLElement
+                            ? this.paddingTarget.getBoundingClientRect()
+                            : (this.paddingTarget === null ? state.dialogRect : title.getBoundingClientRect());
+                        state.dragTargetRect = rect;
+                        state.offsetLeft = state.dialogRect.left - rect.left;
+                        state.offsetTop = state.dialogRect.top - rect.top;
+                    } else if (this.curEvent === Event.Resize) {
+                        const style = getStyle(dialog);
+                        let minWidth = style.minWidth;
+                        let minHeight = style.minHeight;
+                        let maxWidth = style.maxWidth;
+                        let maxHeight = style.maxHeight;
+                        minWidth = minWidth === 'none' ? 0 : +minWidth.replace('px', '');
+                        minHeight = minHeight === 'none' ? 0 : +minHeight.replace('px', '');
+                        maxWidth = maxWidth === 'none' ? Infinity : +maxWidth.replace('px', '');
+                        maxHeight = maxHeight === 'none' ? Infinity : +maxHeight.replace('px', '');
+                        state.direction = direction;
+                        state.sizeRange = [minWidth, maxWidth, minHeight, maxHeight];
+                    }
+                }
+                return !!this.curEvent;
+            } else if (type === 'move') {
+                switch (this.curEvent) {
+                    case Event.Drag:
+                        this.handleDrag(e, state);
+                        break;
+                    case Event.Resize:
+                        this.handleResize(e, state);
+                        break;
+                }
+            } else { //end
+                this.curEvent = Event.None;
+                title.style.cursor = 'auto';
+                document.body.style.userSelect = 'auto';
+                this.isDragging = false;
+                this.isResizing = false;
+            }
+        }, {})
         this.$once('hook:beforeDestroy', () => {
-            offDrag();
+            offResizeCheck();
+            offDragDoc();
             removeFromCache(this);
-        })
+        });
     },
     methods: {
-        onResize({direction, oldSize, size}) {
-            const [oldw, oldh] = oldSize;
-            const [w, h] = size;
-            const el = this.$refs.dialog
-            const {left, top} = this._info;
-            let newTop, newLeft;
-            if (direction.indexOf('top') !== -1 && this._info.size[1] !== oldh) {
-                newTop = oldh + top - h;
-                el.style.top = newTop + 'px';
-                this._info.top = newTop;
+        handleDrag(e, state) {
+            const dialog = this.$refs.dialog;
+            const {x, y, dragTargetRect, wrapRect, offsetTop, offsetLeft, padding} = state;
+            const [t, r, b, l] = padding;
+            const {width: W, height: H, left: Left, top: Top} = wrapRect;
+            const {width: w, height: h, left: left, top: top} = dragTargetRect;
+            const moveX = e.clientX - x;
+            const moveY = e.clientY - y;
+            let _left = left + moveX;
+            let _top = top + moveY;
+            // bound check
+            if (_left < Left + l) {
+                _left = Left + l;
+            } else if (_left + w > W + Left - r) {
+                _left = W + Left - w - r;
             }
-            if (direction.indexOf('left') !== -1 && this._info.size[0] !== oldw) {
-                newLeft = oldw + left - w;
-                el.style.left = newLeft + 'px';
-                this._info.left = newLeft;
+            if (_top < Top + t) {
+                _top = Top + t;
+            } else if (_top + h > H + Top - b) {
+                _top = H + Top - h - b;
             }
-            this._info.size = [oldw, oldh]
+            // boundingRect是相对于body的，这里计算相对wrap父元素的
+            _left = _left - Left;
+            _top = _top - Top;
+            // 移动当前元素
+            const LEFT = (_left >= 0 ? _left : 0) + offsetLeft;
+            const TOP = (_top >= 0 ? _top : 0) + offsetTop;
+            dialog.style.left = `${LEFT}px`;
+            dialog.style.top = `${TOP}px`;
         },
-        initDrag() {
-            const dialog = this.$refs.dialog,
-                wrap = dialog.parentNode,
-                title = this.$refs.title;
-            const titleOnMousedown = (e) => {
-                if (!this.draggable) return;
-                this.isDrag = true
-                //take snapshot
-                document.body.style.userSelect = 'none';
-                //cur position
-                const x = e.clientX; //当前页面点击X
-                const y = e.clientY; //当前页面点击Y
-
-                //wrap position
-                let wrapRect = wrap.getBoundingClientRect();
-                const [t, r, b, l] = this.padding;
-                const W = wrapRect.width,
-                    H = wrapRect.height,
-                    Left = wrapRect.left,
-                    Top = wrapRect.top;
-
-                const dialogRect = dialog.getBoundingClientRect();
-
-                const rect = this.paddingTarget instanceof HTMLElement
-                    ? this.paddingTarget.getBoundingClientRect()
-                    : (this.paddingTarget === null ? dialogRect : title.getBoundingClientRect());
-                const offsetLeft = dialogRect.left - rect.left;
-                const offsetTop = dialogRect.top - rect.top;
-
-
-                const h = rect.height, w = rect.width, //初始位置
-                    left = rect.left, top = rect.top;
-
-                const onMousemove = rafThrottle((e) => {
-                    if (this.fullScreen) return;
-
-                    const moveX = e.clientX - x; //x移动的距离
-                    const moveY = e.clientY - y; //y移动的距离
-                    let _left = left + moveX; //新的left
-                    let _top = top + moveY; //新的top
-                    // 边界处理
-                    if (_left < Left + l) {
-                        _left = Left + l + 1;
-                    } else if (_left + w > W + Left - r) {
-                        _left = W + Left - w - r - 1;
-                    }
-                    if (_top < Top + t) {
-                        _top = Top + t + 1;
-                    } else if (_top + h > H + Top - b) {
-                        _top = H + Top - h - b - 1;
-                    }
-                    _left = _left - Left;//boundingRect是相对于body的，这里计算相对wrap父元素的
-                    _top = _top - Top;
-                    // 移动当前元素
-                    const LEFT = (_left >= 0 ? _left : 0) + offsetLeft;
-                    const TOP = (_top >= 0 ? _top : 0) + offsetTop;
-                    dialog.style.left = `${LEFT}px`;
-                    dialog.style.top = `${TOP}px`;
-                    this._info.left = LEFT;
-                    this._info.top = TOP;
-                });
-                const onMouseup = () => {
-                    this.isDrag = false;
-                    off(document, 'mousemove', onMousemove);
-                    off(document, 'mouseup', onMouseup);
-                    document.body.style.userSelect = null;
-                };
-                on(document, 'mousemove', onMousemove);
-                on(document, 'mouseup', onMouseup);
-                return false;
-            };
-            on(title, 'mousedown', titleOnMousedown);
-            return () => {
-                off(title, 'mousedown', titleOnMousedown);
+        handleResize(e, state) {
+            const dialog = this.$refs.dialog;
+            const {x, y, dialogRect, wrapRect, direction, sizeRange} = state;
+            const [minWidth, maxWidth, minHeight, maxHeight] = sizeRange;
+            const {left, top, width, height} = dialogRect;
+            const {left:Left, top:Top} = wrapRect;
+            const moveX = e.clientX - x;
+            const moveY = e.clientY - y;
+            const drs = direction.split('-');
+            const updateMap = {
+                top() {
+                    const h = clamp(height - moveY, minHeight, maxHeight);
+                    dialog.style.top = top + height - h - Top + 'px';
+                    dialog.style.height = h + 'px';
+                },
+                bottom() {
+                    const h = clamp(height + moveY, minHeight, maxHeight);
+                    dialog.style.height = h + 'px';
+                },
+                left() {
+                    const w = clamp(width - moveX, minWidth, maxWidth);
+                    dialog.style.left = left + width - w - Left + 'px';
+                    dialog.style.width = w + 'px';
+                },
+                right() {
+                    const w = clamp(width + moveX, minWidth, maxWidth);
+                    dialog.style.width = w + 'px';
+                },
             }
+            drs.forEach(dir => updateMap[dir]());
         },
         // 新显示的dialog，z-index提升到最上层
         promoteDialogZIndex() {
@@ -350,21 +413,45 @@ export default {
             immediate: true
         },
         appendToBody: function (v) {
-            this.show && this.placeAtCenter();
+            if(this.show){
+                this.promoteDialogZIndex();
+                this.placeAtCenter();
+            }
         },
         show: {
-            handler: function (v) {
+            handler: function (show) {
                 this.$nextTick(() => {
                     const wrapper = this.$refs.dialogWrapper;
-                    if (v) {
+                    if (show) {
                         winShowCache.push(this);
                         this.promoteDialogZIndex();
                         !this.fullScreen && !this.keepPosition && this.placeAtCenter();
                     } else {
-                        wrapper.style.zIndex = '1000';
+                        wrapper.style.zIndex = minZIndex;
                         removeFromCache(this);
                     }
                 });
+            },
+            immediate: true
+        },
+        resize: {
+            handler: function (v) {
+                if (typeof v === 'boolean') {
+                    this.resizable = v;
+                    this.resizeOpts = v ? {
+                        zoneSize: 8,
+                        directions: ['bottom', 'right'],
+                    } : null
+                } else {
+                    this.resizable = true;
+                    this.resizeOpts = {
+                        zoneSize: v.zoneSize || 8,
+                        directions: v.directions
+                    }
+                    if (v.directions === 'all') {
+                        this.resizeOpts.directions = ['top', 'left', 'right', 'bottom']
+                    }
+                }
             },
             immediate: true
         }

@@ -19,14 +19,15 @@
             <span class="btn" :class='{active:fullScreen}' @click="fullScreen=!fullScreen">切换全屏</span>
         </div>
         <p>dialog没有appendToBody时,提供一个外层定位容器，否则位置会偏差</p>
-        <div style="width: 800px;height: 500px;position: relative;border: 1px solid black">
+        <div style="width: 800px;height: 500px;position: relative;border: 1px solid black;overflow:hidden;">
             <custom-dialog :append-to-body="appendToBody" :class-list="['test-dialog']"
+                           :padding-target="target"
                            :resize="resize"
                            :shadow="shadow" :show.sync="show"
                            :draggable="draggable" :full-screen="fullScreen"
                            :keepPosition="keepPosition">
                 <template #title>
-                    <div style="height: 40px;text-align: center;background-color: #01a3a3;">
+                    <div style="height: 40px;text-align: center;background-color: #01a3a3;" ref="header">
                         我是头部<div class="close-icon" @click="show=false">X</div></div>
                 </template>
                 <template>
@@ -146,8 +147,12 @@ export default {
             keepPosition: true,
             draggable: true,
             fullScreen: false,
-            code: code
+            code: code,
+            target:null
         }
+    },
+    mounted() {
+        this.target = this.$refs.header
     },
     methods: {
         handleResize(v) {

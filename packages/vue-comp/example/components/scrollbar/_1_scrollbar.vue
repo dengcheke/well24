@@ -34,7 +34,9 @@ export default {
     },
     data(){
         setTimeout(()=>{
-            this.vv = true
+            this.vv = {
+                directions:'all'
+            }
         },5000)
         setInterval(()=>{
             this.time +=1;

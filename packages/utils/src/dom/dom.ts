@@ -6,6 +6,8 @@
  * @param option
  * @return ()=>void, 移除handle
  */
+import {rafThrottle} from "../misc";
+
 export const on = /*#__PURE__*/ (function () {
     if (!document.addEventListener) {
         return function (element: EventTarget, event: string, handler: EventListener) {
@@ -174,7 +176,7 @@ export function insertAfter(refNode: Node, insertNode: Node) {
 
 /**
  * 拖拽helper
- * @param {HTMLElement} el 拖拽对象
+ * @param {EventTarget} el 拖拽对象
  * @param {function} eventHandler, 事件handler,
  *          params: {
  *              e:event, //事件
@@ -187,13 +189,16 @@ export function insertAfter(refNode: Node, insertNode: Node) {
  *          }
  * @param {function | Object} init 初始化函数或对象, 对应 eventHandler 中的 state
  */
-export function dragHelper(el: HTMLElement, eventHandler: Function, init?: Function | object) {
+export function dragHelper(el: EventTarget, eventHandler: Function, init?: Function | object) {
     const state = init instanceof Function ? init() : init;
+    let last: Function | null = null;
     return on(el, 'pointerdown', e => {
-        if (eventHandler({e: e, type: "start", state})) {
-            const off1 = on(document, 'pointermove', e => {
+        const goOn = eventHandler({e: e, type: "start", state});
+        if (goOn) {
+            if (last) last();
+            const off1 = on(document, 'pointermove', rafThrottle((e: any) => {
                 eventHandler({e: e, type: "move", state, cancel});
-            });
+            }));
             const off2 = on(document, 'pointerup', e => {
                 eventHandler({e: e, type: "end", state, cancel});
                 cancel();
@@ -207,8 +212,10 @@ export function dragHelper(el: HTMLElement, eventHandler: Function, init?: Funct
                 off1?.();
                 off2?.();
                 off3?.();
+                last = null;
             }
             cancel._isCancel = false;
+            last = cancel;
         }
     });
 }
