@@ -9,6 +9,12 @@
         <p> keepPosition: 是否保持拖拽后的位置,切换显示时,默认会出现在中间</p>
         <p> draggable: 是否开启拖拽,仅title部分可拖拽</p>
         <p> fullScreen: 是否全屏</p>
+        <p> padding: 拖拽距离父元素边距, [top,right,bottom,left]</p>
+        <p> paddingTarget: 应用边距的元素, null(dialog) / 'header'(title) /HTMLElement</p>
+        <p> resize: 是否可拖拽改变大小, false / true/ {
+           directions: 'all'/ ['top' / 'left' / 'bottom' / 'right'],
+           zoneSize: 8
+        }</p>
         <div style="margin-bottom: 10px">
             <span class="btn" :class='{active:resize!==false}' @click="handleResize">切换resize</span>
             <span class="btn" :class='{active:appendToBody}' @click="appendToBody=!appendToBody">切换appendToBody</span>
@@ -31,13 +37,14 @@
                         我是头部<div class="close-icon" @click="show=false">X</div></div>
                 </template>
                 <template>
-                    <div style="height:100%;background-color: #DD4A68">
+                    <div style="height:100%;background-color: #DD4A68;display: flex;
+                    flex-direction: column;align-items: flex-start">
                         我是内容 ,
-                        <div style="background-color: white;margin-bottom: 10px;"
+                        <div style="background-color: white;margin-bottom: 10px;display: inline"
                              @click="appendToBody=!appendToBody">
                             切换appendToBody,{{ appendToBody ? 'true' : 'false' }}
                         </div>
-                        <div style="background-color: yellow;" @click="fullScreen=!fullScreen">
+                        <div style="background-color: yellow;display: inline" @click="fullScreen=!fullScreen">
                             切换fullScreen,{{ fullScreen ? 'true' : 'false' }}
                         </div>
                     </div>
@@ -57,6 +64,7 @@
 const code = `
             <template>
                 <div style="margin-bottom: 10px">
+                    <span class="btn" :class='{active:resize!==false}' @click="handleResize">切换resize</span>
                     <span class="btn" :class='{active:appendToBody}' @click="appendToBody=!appendToBody">切换appendToBody</span>
                     <span class="btn" :class='{active:shadow}' @click="shadow=!shadow">切换shadow</span>
                     <span class="btn" :class='{active:show}' @click="show=!show">切换show</span>
@@ -67,6 +75,7 @@ const code = `
                 <p>dialog没有appendToBody时,提供一个外层定位容器，否则位置会偏差</p>
                 <div style="width: 800px;height: 500px;position: relative;border: 1px solid black">
                     <custom-dialog :append-to-body="appendToBody"
+                                   :padding-target="target"
                                    :shadow="shadow" :show.sync="show"
                                    :draggable="draggable" :full-screen="fullScreen"
                                    :keepPosition="keepPosition">
@@ -97,6 +106,7 @@ const code = `
                     name: "dialog_base",
                     data() {
                         return {
+                            target:null,
                             appendToBody: false,
                             shadow: false,
                             show: true,
@@ -104,10 +114,24 @@ const code = `
                             draggable: true,
                             fullScreen: false
                         }
+                    },
+                    mounted() {
+                        this.target = this.$refs.header
+                    },
+                    methods: {
+                        handleResize(v) {
+                            if (this.resize === false) {
+                                this.resize = {
+                                    directions: 'all'
+                                }
+                            } else {
+                                this.resize = false;
+                            }
+                        }
                     }
                 }
             <\/script>
-            <style  lang="less">
+            <style lang="less">
                 .close-icon {
                     display: block;
                     width: 24px;
@@ -168,8 +192,7 @@ export default {
 }
 </script>
 
-<style  lang="less">
-
+<style lang="less">
 
 .custom-dialog.test-dialog {
     display: flex;
@@ -177,6 +200,7 @@ export default {
     min-width: 300px;
     flex-direction: column;
     .dialog__content {
+        height: 0;
         flex-grow: 1;
     }
 
