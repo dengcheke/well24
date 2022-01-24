@@ -232,8 +232,9 @@ export default {
             }
         }));
         const offDragDoc = dragHelper(document, ({e, type, state}) => {
-            if (!this.draggable && !this.resizable) return
             if (this.fullScreen) return;
+            if (!this.draggable && !this.resizable) return
+            if (!this.isDragging && !this.isResizing && !dialog.contains(e.target)) return;
             if (type === 'start') {
                 if (this.draggable && title.contains(e.target)) {
                     this.curEvent = Event.Drag
