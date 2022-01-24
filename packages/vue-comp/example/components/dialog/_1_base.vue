@@ -12,19 +12,13 @@
         <p> padding: 拖拽距离父元素边距, [top,right,bottom,left]</p>
         <p> paddingTarget: 应用边距的元素, null(dialog) / 'header'(title) /HTMLElement</p>
         <p> resize: 是否可拖拽改变大小, false / true/ {
-           directions: 'all'/ ['top' / 'left' / 'bottom' / 'right'],
-           zoneSize: 8
-        }</p>
+            directions: 'all'/ ['top' / 'left' / 'bottom' / 'right'],
+            zoneSize: 8
+            }</p>
         <div style="margin-bottom: 10px">
-            <span class="btn" :class='{active:resize!==false}' @click="handleResize">切换resize</span>
-            <span class="btn" :class='{active:appendToBody}' @click="appendToBody=!appendToBody">切换appendToBody</span>
-            <span class="btn" :class='{active:shadow}' @click="shadow=!shadow">切换shadow</span>
             <span class="btn" :class='{active:show}' @click="show=!show">切换show</span>
-            <span class="btn" :class='{active:keepPosition}' @click="keepPosition=!keepPosition">切换keepPosition</span>
-            <span class="btn" :class='{active:draggable}' @click="draggable=!draggable">切换draggable</span>
-            <span class="btn" :class='{active:fullScreen}' @click="fullScreen=!fullScreen">切换全屏</span>
         </div>
-        <p>dialog没有appendToBody时,提供一个外层定位容器，否则位置会偏差</p>
+        <p>dialog没有appendToBody时,提供一个外层定位容器</p>
         <div style="width: 800px;height: 500px;position: relative;border: 1px solid black;overflow:hidden;">
             <custom-dialog :append-to-body="appendToBody" :class-list="['test-dialog']"
                            :padding-target="target"
@@ -33,24 +27,43 @@
                            :draggable="draggable" :full-screen="fullScreen"
                            :keepPosition="keepPosition">
                 <template #title>
-                    <div style="height: 40px;text-align: center;background-color: #01a3a3;" ref="header">
-                        我是头部<div class="close-icon" @click="show=false">X</div></div>
+                    <span class="title" ref="header">
+                        我是头部
+                    </span>
+                    <span class="close-icon" @click="show=false">X</span>
                 </template>
                 <template>
-                    <div style="height:100%;background-color: #DD4A68;display: flex;
-                    flex-direction: column;align-items: flex-start">
-                        我是内容 ,
-                        <div style="background-color: white;margin-bottom: 10px;display: inline"
-                             @click="appendToBody=!appendToBody">
-                            切换appendToBody,{{ appendToBody ? 'true' : 'false' }}
-                        </div>
-                        <div style="background-color: yellow;display: inline" @click="fullScreen=!fullScreen">
-                            切换fullScreen,{{ fullScreen ? 'true' : 'false' }}
-                        </div>
+                    <div>
+                        appendToBody:{{ appendToBody }}
+                        <span class="btn" @click="appendToBody=!appendToBody">切换</span>
+                    </div>
+                    <div>
+                        fullScreen:{{ fullScreen }}
+                        <span class="btn" @click="fullScreen=!fullScreen">切换</span>
+                    </div>
+                    <div>
+                        resize:{{ resize }}
+                        <span class="btn" @click="handleResize">切换</span>
+                    </div>
+                    <div>
+                        shadow:{{ shadow }}
+                        <span class="btn" @click="shadow=!shadow">切换</span>
+                    </div>
+                    <div>
+                        keepPosition:{{ keepPosition }}
+                        <span class="btn" @click="keepPosition=!keepPosition">切换</span>
+                    </div>
+                    <div>
+                        draggable:{{ draggable }}
+                        <span class="btn" @click="draggable=!draggable">切换</span>
+                    </div>
+                    <div>
+                        fullScreen:{{ fullScreen }}
+                        <span class="btn" @click="fullScreen=!fullScreen">切换</span>
                     </div>
                 </template>
                 <template #footer>
-                    <div style="height: 40px;text-align: center;background-color: green">我是尾部</div>
+                    <div>我是尾部</div>
                 </template>
             </custom-dialog>
         </div>
@@ -63,40 +76,51 @@
 <script>
 const code = `
             <template>
-                <div style="margin-bottom: 10px">
-                    <span class="btn" :class='{active:resize!==false}' @click="handleResize">切换resize</span>
-                    <span class="btn" :class='{active:appendToBody}' @click="appendToBody=!appendToBody">切换appendToBody</span>
-                    <span class="btn" :class='{active:shadow}' @click="shadow=!shadow">切换shadow</span>
-                    <span class="btn" :class='{active:show}' @click="show=!show">切换show</span>
-                    <span class="btn" :class='{active:keepPosition}' @click="keepPosition=!keepPosition">切换keepPosition</span>
-                    <span class="btn" :class='{active:draggable}' @click="draggable=!draggable">切换draggable</span>
-                    <span class="btn" :class='{active:fullScreen}' @click="fullScreen=!fullScreen">切换全屏</span>
-                </div>
-                <p>dialog没有appendToBody时,提供一个外层定位容器，否则位置会偏差</p>
-                <div style="width: 800px;height: 500px;position: relative;border: 1px solid black">
-                    <custom-dialog :append-to-body="appendToBody"
+                <div style="width: 800px;height: 500px;position: relative;border: 1px solid black;overflow:hidden;">
+                    <custom-dialog :append-to-body="appendToBody" :class-list="['test-dialog']"
                                    :padding-target="target"
+                                   :resize="resize"
                                    :shadow="shadow" :show.sync="show"
                                    :draggable="draggable" :full-screen="fullScreen"
                                    :keepPosition="keepPosition">
                         <template #title>
-                            <div style="height: 40px;text-align: center;background-color: #01a3a3">我是头部</div>
-                            <div class="close-icon" @click="show=false">X</div>
+                            <span class="title" ref="header">
+                                我是头部
+                            </span>
+                            <span class="close-icon" @click="show=false">X</span>
                         </template>
                         <template>
-                            <div style="height:100%;background-color: #DD4A68">
-                                我是内容 ,
-                                <div style="background-color: white;margin-bottom: 10px;width: 150px"
-                                     @click="appendToBody=!appendToBody">
-                                    切换appendToBody
-                                </div>
-                                <div style="background-color: yellow;width: 150px" @click="fullScreen=!fullScreen">
-                                    切换fullScreen
-                                </div>
+                            <div>
+                                appendToBody:{{ appendToBody }}
+                                <span class="btn" @click="appendToBody=!appendToBody">切换</span>
+                            </div>
+                            <div>
+                                fullScreen:{{ fullScreen }}
+                                <span class="btn" @click="fullScreen=!fullScreen">切换</span>
+                            </div>
+                            <div>
+                                resize:{{ resize }}
+                                <span class="btn" @click="handleResize">切换</span>
+                            </div>
+                            <div>
+                                shadow:{{ shadow }}
+                                <span class="btn" @click="shadow=!shadow">切换</span>
+                            </div>
+                            <div>
+                                keepPosition:{{ keepPosition }}
+                                <span class="btn" @click="keepPosition=!keepPosition">切换</span>
+                            </div>
+                            <div>
+                                draggable:{{ draggable }}
+                                <span class="btn" @click="draggable=!draggable">切换</span>
+                            </div>
+                            <div>
+                                fullScreen:{{ fullScreen }}
+                                <span class="btn" @click="fullScreen=!fullScreen">切换</span>
                             </div>
                         </template>
                         <template #footer>
-                            <div style="height: 40px;text-align: center;background-color: green">我是尾部</div>
+                            <div>我是尾部</div>
                         </template>
                     </custom-dialog>
                 </div>
@@ -132,32 +156,12 @@ const code = `
                 }
             <\/script>
             <style lang="less">
-                .close-icon {
-                    display: block;
-                    width: 24px;
-                    height: 24px;
-                    line-height: 24px;
-                    text-align: center;
-                    position: absolute;
-                    right: 0;
-                    top: 0;
-                    cursor: auto;
-                }
-
-                .custom-dialog {
-                    .dialog__content {
-                        height: 300px;
-                    }
-
-                    &.full-screen {
-                        display: flex;
-                        flex-direction: column;
-                        align-items: stretch;
-
-                        .dialog__content {
-                            flex-grow: 1;
-                        }
-                    }
+                .custom-dialog.test-dialog {
+                    display: flex;
+                    min-height: 370px;
+                    min-width: 600px;
+                    flex-direction: column;
+                    color: white;
                 }
             <\/style>`
 export default {
@@ -172,11 +176,11 @@ export default {
             draggable: true,
             fullScreen: false,
             code: code,
-            target:null
+            target: null
         }
     },
     mounted() {
-        this.target = this.$refs.header
+        //this.target = this.$refs.header
     },
     methods: {
         handleResize(v) {
@@ -196,12 +200,55 @@ export default {
 
 .custom-dialog.test-dialog {
     display: flex;
-    min-height: 200px;
-    min-width: 300px;
+    min-height: 370px;
+    min-width: 600px;
     flex-direction: column;
+    color: white;
+
+    .dialog__title {
+        margin: 10px 0;
+        padding: 0 20px;
+        position: relative;
+        overflow: visible;
+
+        span.title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        span.close-icon {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            transform: scale(1.1, 1.0) translateY(-10px);
+        }
+    }
+
     .dialog__content {
-        height: 0;
         flex-grow: 1;
+        margin: 0 20px;
+        padding: 0 10px;
+        background-color: rgba(22,55,76,.9);
+        div {
+            width: 50%;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #409eff;
+            padding: 4px 12px;
+        }
+    }
+
+    .dialog__footer {
+        padding: 10px 20px 0 20px;
+
+        div {
+            height: 40px;
+            text-align: right;
+            color: #44ff44;
+        }
     }
 
     &.full-screen {
@@ -213,6 +260,7 @@ export default {
             flex-grow: 1;
         }
     }
+
     .close-icon {
         display: block;
         width: 24px;

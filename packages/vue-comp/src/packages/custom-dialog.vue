@@ -480,8 +480,7 @@ export default {
         backface-visibility: hidden;
         pointer-events: auto;
         position: absolute;
-        height: auto;
-        background-color: rgba(23, 75, 98, 0.9);
+        background-color: rgba(2, 34, 51, 0.8);
         box-shadow: 2px 2px 10px 0 black;
 
         &.full-screen {
