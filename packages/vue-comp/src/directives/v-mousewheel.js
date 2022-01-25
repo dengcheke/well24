@@ -3,7 +3,7 @@ import {on} from "@well24/utils";
 
 const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
-const bindMousewheel = function (element, callback, opts) {
+export const bindMousewheel = function (element, callback, opts) {
     return on(element, isFirefox ? 'DOMMouseScroll' : 'mousewheel', function (event) {
         const normalized = normalizeWheel(event);
         callback && callback.apply(this, [event, normalized]);

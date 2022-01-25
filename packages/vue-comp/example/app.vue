@@ -52,7 +52,8 @@ export default {
                 {
                     label:'scrollbar',
                     children: [
-                        {label:"base",pathName: '/scrollbar/1'}
+                        {label:"base",pathName: '/scrollbar/1'},
+                        {label:"new",pathName: '/scrollbar/2'}
                     ]
                 },
                 {

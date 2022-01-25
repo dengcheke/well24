@@ -14,6 +14,7 @@ import tableBase from './components/table/_1_base';
 import dialogNested from './components/dialog/_2_nested';
 import dialogBase from './components/dialog/_1_base';
 import scrollbar from './components/scrollbar/_1_scrollbar'
+import newscrollbar from './components/scrollbar/_new_scrollbar'
 import loading from './components/directives/loading';
 import resize from './components/directives/resize';
 import transfer from './components/directives/transfer-dom';
@@ -33,6 +34,7 @@ const tableRoutes = [
 
     {path: "/dialog/1", component: dialogBase},
     {path: "/scrollbar/1", component: scrollbar},
+    {path: "/scrollbar/2", component: newscrollbar},
     {path: "/dialog/2", component: dialogNested},
 
     {path: "/directives/loading", component: loading},

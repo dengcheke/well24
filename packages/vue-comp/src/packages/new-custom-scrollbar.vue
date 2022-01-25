@@ -1,11 +1,8 @@
 <template>
-    <div class="custom-scrollbar" :style="calcElStyle()">
-        <div class="scrollbar__wrap" ref="wrap"
-             :style="calcWrapStyle()" @scroll.passive="handleScroll($event)">
-            <div class="scrollbar__view" :style="calcViewStyle()"
-                 :class="viewClass" ref="view">
-                <slot/>
-            </div>
+    <div class="new-custom-scrollbar" v-scroll.transform="scrollParam" :style="calcElStyle()">
+        <div class="scrollbar__view" :style="calcViewStyle()"
+             :class="viewClass" ref="view">
+            <slot/>
         </div>
         <Bar :move="moveX" :size="sizeWidth" ref="barX"/>
         <Bar vertical :move="moveY" :size="sizeHeight" ref="barY"/>
@@ -16,10 +13,16 @@
 import Bar from '@src/packages/bar';
 import ResizeObserver from 'resize-observer-polyfill';
 import {clamp, getScrollbarWidth} from "@well24/utils";
+import {vMouseWheel} from "@src/directives/v-mousewheel";
+import {vScroll} from "../directives/v-scroll";
 
 export default {
-    name: "CustomScrollbar",
+    name: "NewCustomScrollbar",
     components: {Bar},
+    directives: {
+        mouseWheel: vMouseWheel,
+        scroll: vScroll
+    },
     props: {
         viewClass: {
             type: Array | Object,
@@ -45,13 +48,17 @@ export default {
         },
         inheritWidth: {
             type: Boolean,
-            default: true
+            default: !true
         },
     },
     data() {
         let barWidth = Math.ceil(getScrollbarWidth());
         return {
-            elWidth:0,//宽度
+            scrollParam:{
+                onScroll:this.onScroll,
+                durFrames:60
+            },
+            elWidth: 0,//宽度
             barWidth: barWidth,//滚动条宽度
             sizeWidth: 0,
             sizeHeight: 0,
@@ -69,6 +76,9 @@ export default {
         this.init();
     },
     methods: {
+        onScroll(...args) {
+            console.log(args)
+        },
         init() {
             const el = this.$el, view = this.$refs.view;
             const ro = new ResizeObserver(entries => {
@@ -84,7 +94,6 @@ export default {
                     this.viewWidth = view.offsetWidth;
                     this.viewHeight = view.offsetHeight;
                 }
-                update && this.$nextTick(() => this.updateScrollbar());
             });
             [el, view].forEach(i => ro.observe(i));
             this.$once('hook:beforeDestroy', () => {
@@ -149,7 +158,7 @@ export default {
                 behavior: smooth ? "smooth" : "auto"
             }))
         },
-        calcViewStyle(){
+        calcViewStyle() {
             return {
                 ...(this.viewStyle || {}),
                 minWidth: this.inheritWidth ? this.elWidth + 'px' : null
@@ -160,7 +169,7 @@ export default {
 </script>
 
 <style lang="less">
-.custom-scrollbar {
+.new-custom-scrollbar {
     width: 100%;
     position: relative;
     overflow: hidden;
