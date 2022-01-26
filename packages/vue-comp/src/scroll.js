@@ -1,5 +1,6 @@
-import {clamp} from "@well24/utils";
+import {clamp, on} from "@well24/utils";
 import {bindMousewheel} from "./directives/v-mousewheel";
+import throttle from 'lodash/throttle';
 
 function cubicInOut(k) {
     if ((k *= 2) < 1) return 0.5 * k * k * k;
@@ -56,7 +57,7 @@ class ScrollScheduler {
     }
 
     addDelta(delta) {
-        if(!this.isScrolling) throw new Error('can not add delta when not scrolling');
+        if (!this.isScrolling) throw new Error('can not add delta when not scrolling');
         this.to += delta;
     }
 
@@ -70,10 +71,18 @@ class ScrollScheduler {
     }
 }
 
+const keyMap = {
+    37: {dir: 'left', s: '-'},
+    38: {dir: "top", s: '-'},
+    39: {dir: "left", s: '+'},
+    40: {dir: "top", s: '+'},
+}
+
 export class CustomScroll {
     constructor() {
         this.cb = null;
         this.useTransform = true;
+        this.scrollPropagation = true;
         this.target = null;
         this.x = 0;
         this.y = 0;
@@ -89,6 +98,9 @@ export class CustomScroll {
                 this.applyEffect();
             },
         });
+        this.throttleScrollTo = throttle(function (...args) {
+            this.scrollTo.call(this, ...args);
+        }.bind(this), 16.6, {leading: false, trailing: true})
     }
 
     watch(el, opts = {}) {
@@ -96,6 +108,7 @@ export class CustomScroll {
             this.el = el;
             this.attach(el);
         }
+        this.scrollPropagation = opts.scrollPropagation !== false;
         this.cb = opts.onScroll instanceof Function ? opts.onScroll : noop;
         this.useTransform = opts.transform !== false;
         this.target = this.useTransform ? this.el.children[0] : this.el;
@@ -107,13 +120,14 @@ export class CustomScroll {
     attach(el) {
         if (!el) throw new Error('el is empty');
         this.el = el;
+        el.tabIndex = el.tabIndex === -1 ? 1 : el.tabIndex;
         this._off?.();
         let lastWheelTime = getTime();
         let lastWheelXD = null;
         let lastWheelYD = null;
-        this._off = bindMousewheel(el, (event, data) => {
+        const offwheel = bindMousewheel(el, (event, data) => {
             const cur = getTime();
-            let prevent = true;
+            let canScroll = true;
             let needNewStart = cur - lastWheelTime > OneFrameTime * 2;
             lastWheelTime = cur;
             let delta, direct, curValue, maxValue;
@@ -124,7 +138,7 @@ export class CustomScroll {
                 curValue = this.y;
                 if (maxValue === curValue && wheelDir > 0
                     || 0 === curValue && wheelDir < 0) {
-                    prevent = false;
+                    canScroll = false;
                 }
                 direct = 'y';
                 needNewStart = needNewStart || (wheelDir !== lastWheelYD);
@@ -136,14 +150,14 @@ export class CustomScroll {
                 curValue = this.x;
                 if (maxValue === curValue && wheelDir > 0
                     || 0 === curValue && wheelDir < 0) {
-                    prevent = false;
+                    canScroll = false;
                 }
                 direct = 'x';
                 needNewStart = needNewStart || (wheelDir !== lastWheelXD);
                 lastWheelXD = wheelDir;
                 delta = wheelDir * 100 // 向右正值
             }
-            if (prevent) {
+            if (canScroll) {
                 const schd = direct === 'x' ? this.schdX : this.schdY;
                 const to = clamp(delta + curValue, 0, maxValue);
                 if (schd.isScrolling) {
@@ -158,8 +172,67 @@ export class CustomScroll {
                     schd.start(curValue, to);
                 }
                 event.preventDefault();
+            }else{
+                !this.scrollPropagation && event.preventDefault();
             }
         });
+        //keyboard scroll
+        let focus = false;
+        const off = on(document, 'click', (e) => {
+            if (!el.contains(e.target)) {
+                focus = false;
+                el.blur();
+            }
+        });
+        const off1 = on(el, 'click', e => {
+            focus = true;
+            el.focus();
+            e.stopPropagation();
+        });
+
+        let press = false, continues = false;
+        const off2 = on(el, 'keydown', e => {
+            const codeInfo = keyMap[e.keyCode];
+            if (!codeInfo) return;
+            if (press) {
+                this.throttleScrollTo({
+                    [codeInfo.dir]: `${codeInfo.s}=20`,
+                    smooth: !continues
+                });
+                !continues && (continues = true);
+            } else {
+                press = true;
+                this.scrollTo({
+                    [codeInfo.dir]: `${codeInfo.s}=40`,
+                    smooth: true
+                })
+            }
+
+            let prevent = true;
+            const schd = codeInfo.dir === 'left' ? this.schdX : this.schdY;
+            const cur = schd.curValue;
+            const attr = codeInfo.dir === 'left' ? 'Width' : "Height";
+            const max = el[`scroll${attr}`] - el[`client${attr}`];
+            if (this.scrollPropagation && (cur === 0 && codeInfo.s === '-' || cur === max && codeInfo.s === '+')) {
+                prevent = false;
+            }
+            if (prevent) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+        })
+        const off3 = on(el, 'keyup', () => {
+            press = continues = false;
+        });
+        this._off = () => {
+            offwheel();
+            off();
+            off1();
+            off2();
+            off3();
+            this._off = null;
+        }
     }
 
     applyEffect() {
@@ -182,30 +255,38 @@ export class CustomScroll {
         this._off = null;
     }
 
-    scrollTo({x, y, smooth}) {
+    scrollTo({left: x, top: y, smooth}) {
         const {schdX, schdY, el} = this;
         const maxX = el.scrollWidth - el.clientWidth;
         const maxY = el.scrollHeight - el.clientHeight;
         const curX = schdX.curValue;
         const curY = schdY.curValue;
-        x = clamp(x, 0, maxX);
-        y = clamp(y, 0, maxY);
-        const scrollX = x !== undefined && !isNaN(x) && x !== curX;
-        const scrollY = y !== undefined && !isNaN(y) && y !== curY;
+        x = clamp(format(x, curX), 0, maxX);
+        y = clamp(format(y, curY), 0, maxY);
+        const scrollX = !isNaN(x) && x !== curX;
+        const scrollY = !isNaN(y) && y !== curY;
         if (smooth !== false) {
-            scrollX && schdX.start(curX,x);
-            scrollY && schdY.start(curY,y);
-        }else{
-            if(scrollX){
+            scrollX && schdX.start(curX, x);
+            scrollY && schdY.start(curY, y);
+        } else {
+            if (scrollX) {
                 schdX.stop();
                 schdX.curValue = x;
                 schdX.onTick(x);
             }
-            if(scrollY){
+            if (scrollY) {
                 schdY.stop();
                 schdY.curValue = y;
                 schdY.onTick(y);
             }
+        }
+
+        function format(v, target) {
+            if (v === undefined) return undefined;
+            if (typeof v === 'number') return v;
+            const match = (v + '').match(/^([+-])=(\d*)$/);
+            if (!match) throw new Error('invalid input:', v);
+            return (match[1] === '+' ? 1 : -1) * (+match[2]) + target;
         }
     }
 }

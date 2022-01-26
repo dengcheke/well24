@@ -18,13 +18,18 @@
 <script>
 import Bar from '@src/packages/new-bar';
 import ResizeObserver from 'resize-observer-polyfill';
-import {clamp} from "@well24/utils";
+import {clamp, on} from "@well24/utils";
 import {CustomScroll} from "../scroll";
+
 
 export default {
     name: "NewCustomScrollbar",
     components: {Bar},
     props: {
+        scrollPropagation: {
+            type: Boolean,
+            default: true
+        },
         height: {
             default: '100%',
             type: Number | String
@@ -44,14 +49,17 @@ export default {
     },
     data() {
         return {
+            focus: false,
             dataX: {
-                value: 0,
-                total: 1,
-                enter: false,
+                move: NaN,
+                clientSize: NaN,
+                scrollSize: NaN,
+                enter: false
             },
             dataY: {
-                value: 0,
-                total: 1,
+                move: NaN,
+                clientSize: NaN,
+                scrollSize: NaN,
                 enter: false
             },
             wrapRect: {},
@@ -59,17 +67,22 @@ export default {
         }
     },
     mounted() {
+        const el = this.$el;
         this.initResizeWatcher();
         this.onScroll({x: 0, y: 0});
         const scroll = this.scroll = new CustomScroll();
-        scroll.watch(this.$el, {
+        scroll.watch(el, {
             onScroll: this.onScroll,
             durFrames: 20,
-            transform: true,
+            transform: true
         });
+        const off = this.$watch('scrollPropagation',(v)=>{
+            scroll.scrollPropagation = v;
+        },{immediate:true});
         this.$refs.barx.wrap = this.$refs.bary.wrap = this;
         this.$once('hook:beforeDestroy', () => {
-            scroll.destroy()
+            scroll.destroy();
+            off();
         });
     },
     methods: {
@@ -106,7 +119,9 @@ export default {
             })
         },
         calcElStyle() {
-            const style = {}
+            const style = {
+                outline: 'none'
+            }
             if (typeof this.height === 'number') {
                 style.height = `${this.height}px`;
             } else if (this.height === 'auto') {
@@ -135,7 +150,7 @@ export default {
                 ...(this.viewStyle || {}),
                 width: this.inheritWidth ? this.wrapRect.width + 'px' : null
             };
-        }
+        },
     },
 }
 </script>

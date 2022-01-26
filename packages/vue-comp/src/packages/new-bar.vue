@@ -44,6 +44,7 @@ export default {
             e.stopPropagation();
             const vertical = this.vertical;
             if (type === 'start') {
+                state.oldOpacity = this.$el.style.opacity;
                 state.v = vertical ? e.clientY : e.clientX;
                 state.beginValue = this.data.move;
                 state.ratio = this.data.scrollSize / this.data.clientSize;
@@ -54,12 +55,12 @@ export default {
                 const v = vertical ? e.clientY : e.clientX;
                 const move = v - state.v;
                 move !== 0 && this.wrap.scrollTo({
-                    [vertical ? 'y' : 'x']: move * state.ratio + state.beginValue,
+                    [vertical ? 'top' : 'left']: move * state.ratio + state.beginValue,
                     smooth: false
                 })
             } else {
                 document.body.style.userSelect = 'auto';
-                this.$el.style.opacity = 1;
+                this.$el.style.opacity = state.oldOpacity;
             }
         }, {});
         const off2 = on(el, 'click', e => {
@@ -70,7 +71,7 @@ export default {
                 : e.clientX - (rect.left + rect.right) * 0.5;
             const move = ratio * v;
             this.wrap.scrollTo({
-                [this.vertical ? 'y' : 'x']: this.data.move + move,
+                [this.vertical ? 'top' : 'left']: this.data.move + move,
                 smooth: true
             })
         });
@@ -84,7 +85,8 @@ export default {
             const style = {};
             if (!this.data) return style;
             const {move, clientSize, scrollSize} = this.data;
-            const temp = clientSize / scrollSize || 0;
+            let temp = clientSize / scrollSize || 0;
+            if(temp >= 1) temp = 0;
             style[this.bar.size] = `${temp * 100}%`;
             style.transform = `translate${this.bar.axis}(${move * temp}px)`;
             return style;
