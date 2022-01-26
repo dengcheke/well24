@@ -1,39 +1,30 @@
 <template>
-    <div class="new-custom-scrollbar" v-scroll.transform="scrollParam" :style="calcElStyle()">
-        <div class="scrollbar__view" :style="calcViewStyle()"
-             :class="viewClass" ref="view">
+    <div class="new-custom-scrollbar"
+         @mouseenter="enter=true"
+         @mouseleave="enter=false"
+         :style="calcElStyle()">
+        <div class="scrollbar__view" :style="calcViewStyle()" ref="view">
             <slot/>
         </div>
-        <Bar :move="moveX" :size="sizeWidth" ref="barX"/>
-        <Bar vertical :move="moveY" :size="sizeHeight" ref="barY"/>
+        <slot name="barx" :data="dataX">
+            <Bar ref="barx" :data="dataX"/>
+        </slot>
+        <slot name="bary" :data="dataY">
+            <Bar ref="bary" vertical :data="dataY"/>
+        </slot>
     </div>
 </template>
 
 <script>
-import Bar from '@src/packages/bar';
+import Bar from '@src/packages/new-bar';
 import ResizeObserver from 'resize-observer-polyfill';
-import {clamp, getScrollbarWidth} from "@well24/utils";
-import {vMouseWheel} from "@src/directives/v-mousewheel";
-import {vScroll} from "../directives/v-scroll";
+import {clamp} from "@well24/utils";
+import {CustomScroll} from "../scroll";
 
 export default {
     name: "NewCustomScrollbar",
     components: {Bar},
-    directives: {
-        mouseWheel: vMouseWheel,
-        scroll: vScroll
-    },
     props: {
-        viewClass: {
-            type: Array | Object,
-            default: () => []
-        },
-        viewStyle: {
-            type: Object,
-            default: () => {
-                return {}
-            }
-        },
         height: {
             default: '100%',
             type: Number | String
@@ -52,82 +43,74 @@ export default {
         },
     },
     data() {
-        let barWidth = Math.ceil(getScrollbarWidth());
         return {
-            scrollParam:{
-                onScroll:this.onScroll,
-                durFrames:60
+            dataX: {
+                value: 0,
+                total: 1,
+                enter: false,
             },
-            elWidth: 0,//宽度
-            barWidth: barWidth,//滚动条宽度
-            sizeWidth: 0,
-            sizeHeight: 0,
-            moveX: 0,
-            moveY: 0,
-            viewHeight: 0,
-            viewWidth: 0,
-            scrollLeft: 0,
-            scrollTop: 0,
+            dataY: {
+                value: 0,
+                total: 1,
+                enter: false
+            },
+            wrapRect: {},
+            scrollSize: []
         }
     },
     mounted() {
-        const {barX, barY, wrap} = this.$refs;
-        barX.wrap = barY.wrap = wrap;
-        this.init();
+        this.initResizeWatcher();
+        this.onScroll({x: 0, y: 0});
+        const scroll = this.scroll = new CustomScroll();
+        scroll.watch(this.$el, {
+            onScroll: this.onScroll,
+            durFrames: 20,
+            transform: true,
+        });
+        this.$refs.barx.wrap = this.$refs.bary.wrap = this;
+        this.$once('hook:beforeDestroy', () => {
+            scroll.destroy()
+        });
     },
     methods: {
-        onScroll(...args) {
-            console.log(args)
+        onScroll({x, y}) {
+            this.dataX = {
+                move: x,
+                clientSize: this.wrapRect.width,
+                scrollSize: this.scrollSize[0],
+                enter: true
+            };
+            this.dataY = {
+                move: y,
+                clientSize: this.wrapRect.height,
+                scrollSize: this.scrollSize[1],
+                enter: true
+            }
         },
-        init() {
+        initResizeWatcher() {
             const el = this.$el, view = this.$refs.view;
             const ro = new ResizeObserver(entries => {
-                let update = false;
                 const elEn = entries.find(i => i.target === el);
                 if (elEn) {
-                    update = true;
-                    this.elWidth = elEn.contentRect.width;
+                    this.wrapRect = elEn.contentRect;
                 }
-                const viewEn = entries.find(i => i.target === view);
-                if (viewEn) {
-                    update = true;
-                    this.viewWidth = view.offsetWidth;
-                    this.viewHeight = view.offsetHeight;
-                }
+                this.scrollSize = [el.scrollWidth, el.scrollHeight];
+                this.onScroll({
+                    x: this.dataX.value || 0,
+                    y: this.dataY.value || 0
+                });
             });
             [el, view].forEach(i => ro.observe(i));
             this.$once('hook:beforeDestroy', () => {
                 ro.disconnect();
             })
         },
-        updateScrollbar() {
-            let heightPercentage, widthPercentage;
-            const wrap = this.$refs.wrap;
-            if (!wrap) return;
-            if (wrap.scrollHeight - wrap.clientHeight <= 1) {
-                heightPercentage = 100;
-            } else {
-                heightPercentage = (wrap.clientHeight * 100 / wrap.scrollHeight);
-            }
-            widthPercentage = (wrap.clientWidth * 100 / wrap.scrollWidth);
-
-            this.sizeHeight = (heightPercentage < 100) ? heightPercentage : 0;
-            this.sizeWidth = (widthPercentage < 100) ? widthPercentage : 0;
-        },
-        handleScroll(e) {
-            const wrap = this.$refs.wrap;
-            const {scrollTop, scrollLeft, clientHeight, clientWidth} = wrap;
-            this.scrollTop = scrollTop;
-            this.scrollLeft = scrollLeft;
-            this.moveY = ((scrollTop * 100) / clientHeight);
-            this.moveX = ((scrollLeft * 100) / clientWidth);
-        },
         calcElStyle() {
             const style = {}
             if (typeof this.height === 'number') {
                 style.height = `${this.height}px`;
             } else if (this.height === 'auto') {
-                const min = this.minHeight, max = this.maxHeight, h = this.viewHeight;
+                const min = this.minHeight, max = this.maxHeight, h = this.scrollSize[1] || 0;
                 if (min && max) {
                     style.height = clamp(h, min, max) + 'px';
                 } else if (min && !max) {
@@ -140,28 +123,17 @@ export default {
             } else {
                 style.height = this.height;
             }
-            this.minHeight && (style.minHeight = `${this.minHeight}px`);
-            this.maxHeight && (style.maxHeight = `${this.maxHeight}px`);
+            //this.minHeight && (style.minHeight = `${this.minHeight}px`);
+            //this.maxHeight && (style.maxHeight = `${this.maxHeight}px`);
             return style;
         },
-        calcWrapStyle() {
-            return {
-                height: `calc(100% + ${this.barWidth}px)`,
-                width: `calc(100% + ${this.barWidth}px)`,
-            }
-        },
-        //滚动到最下面
-        scrollToBottom(smooth) {
-            const {wrap} = this.$refs;
-            wrap && (wrap.scrollTo({
-                top: wrap.scrollHeight,
-                behavior: smooth ? "smooth" : "auto"
-            }))
+        scrollTo(opts) {
+            this.scroll.scrollTo(opts)
         },
         calcViewStyle() {
             return {
                 ...(this.viewStyle || {}),
-                minWidth: this.inheritWidth ? this.elWidth + 'px' : null
+                width: this.inheritWidth ? this.wrapRect.width + 'px' : null
             };
         }
     },
@@ -174,15 +146,9 @@ export default {
     position: relative;
     overflow: hidden;
 
-    &:hover {
-        & > .scrollbar__bar {
-            opacity: 1;
-            transition: opacity 340ms ease-out;
-        }
-    }
-
-    .scrollbar__wrap {
-        overflow: scroll;
+    &:hover > .new-scrollbar__bar {
+        opacity: 1;
+        transition: opacity 340ms ease-out;
     }
 
     .scrollbar__view {
@@ -193,7 +159,7 @@ export default {
         padding: 0;
     }
 
-    .scrollbar__bar {
+    .new-scrollbar__bar {
         position: absolute;
         right: 2px;
         bottom: 2px;
