@@ -18,7 +18,7 @@
 <script>
 import Bar from '@src/packages/new-bar';
 import ResizeObserver from 'resize-observer-polyfill';
-import {clamp, on} from "@well24/utils";
+import {clamp} from "@well24/utils";
 import {CustomScroll} from "../scroll";
 
 
@@ -73,12 +73,12 @@ export default {
         const scroll = this.scroll = new CustomScroll();
         scroll.watch(el, {
             onScroll: this.onScroll,
-            durFrames: 20,
+            durFrames: 10,
             transform: true
         });
-        const off = this.$watch('scrollPropagation',(v)=>{
+        const off = this.$watch('scrollPropagation', (v) => {
             scroll.scrollPropagation = v;
-        },{immediate:true});
+        }, {immediate: true});
         this.$refs.barx.wrap = this.$refs.bary.wrap = this;
         this.$once('hook:beforeDestroy', () => {
             scroll.destroy();
@@ -92,13 +92,17 @@ export default {
                 clientSize: this.wrapRect.width,
                 scrollSize: this.scrollSize[0],
                 enter: true
-            };
+            }
             this.dataY = {
                 move: y,
                 clientSize: this.wrapRect.height,
                 scrollSize: this.scrollSize[1],
                 enter: true
             }
+            this.$emit('scroll', {
+                left: x,
+                top: y
+            });
         },
         initResizeWatcher() {
             const el = this.$el, view = this.$refs.view;

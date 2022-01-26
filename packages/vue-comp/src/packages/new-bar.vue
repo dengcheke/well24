@@ -84,9 +84,12 @@ export default {
         getThumbStyle() {
             const style = {};
             if (!this.data) return style;
-            const {move, clientSize, scrollSize} = this.data;
+            let {move, clientSize, scrollSize} = this.data;
+            if (scrollSize - clientSize < 1) {
+                clientSize = scrollSize;
+            }
             let temp = clientSize / scrollSize || 0;
-            if(temp >= 1) temp = 0;
+            if (temp >= 1) temp = 0;
             style[this.bar.size] = `${temp * 100}%`;
             style.transform = `translate${this.bar.axis}(${move * temp}px)`;
             return style;

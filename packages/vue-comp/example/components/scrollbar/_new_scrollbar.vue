@@ -1,17 +1,18 @@
 <template>
-    <div>
-        <new-custom-scrollbar style="height: 600px;width: 500px">
+    <div style="display: flex;">
+        <new-custom-scrollbar style="height: 800px;width: 50%" @scroll="handleScroll">
             <!--<div v-for="i in 100" style="height: 40px;width:1000px;
         background: linear-gradient(to right,dodgerblue,cadetblue);
         box-sizing:border-box;
         border: 1px solid red">itemitemitemitemitemitem,,,{{i}}</div>-->
             {{str1}}
         </new-custom-scrollbar>
-        <div style="height: 600px;width: 500px;margin-top: 20px;overflow:auto;">
-            <div v-for="i in 100" style="height: 40px;width:1000px;
+        <div style="height: 800px;width: 50%;overflow:auto;" ref="div2">
+            <!--<div v-for="i in 100" style="height: 40px;width:1000px;
         background: linear-gradient(to right,dodgerblue,cadetblue);
         box-sizing:border-box;
-        border: 1px solid cyan">itemitemitemitemitemitem,,,{{i}}</div>
+        border: 1px solid cyan">itemitemitemitemitemitem,,,{{i}}</div>-->
+            {{str1}}
         </div>
     </div>
 
@@ -361,6 +362,13 @@ export default {
                 "条款\n" +
                 "隐私\n" +
                 "饼干"
+        }
+    },
+    methods:{
+        handleScroll({left,top}){
+            //console.log(left,top)
+            //this.$refs.div2.scrollLeft = left;
+            //this.$refs.div2.scrollTop = top;
         }
     }
 }

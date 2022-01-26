@@ -1,6 +1,5 @@
 import {clamp, on} from "@well24/utils";
 import {bindMousewheel} from "./directives/v-mousewheel";
-import throttle from 'lodash/throttle';
 
 function cubicInOut(k) {
     if ((k *= 2) < 1) return 0.5 * k * k * k;
@@ -98,9 +97,6 @@ export class CustomScroll {
                 this.applyEffect();
             },
         });
-        this.throttleScrollTo = throttle(function (...args) {
-            this.scrollTo.call(this, ...args);
-        }.bind(this), 16.6, {leading: false, trailing: true})
     }
 
     watch(el, opts = {}) {
@@ -172,7 +168,7 @@ export class CustomScroll {
                     schd.start(curValue, to);
                 }
                 event.preventDefault();
-            }else{
+            } else {
                 !this.scrollPropagation && event.preventDefault();
             }
         });
@@ -190,16 +186,30 @@ export class CustomScroll {
             e.stopPropagation();
         });
 
-        let press = false, continues = false;
+        let press = false, continues = null, continuesTimer = null;
+        const continuesScroll = codeInfo => {
+            continues = true;
+            const self = this;
+            continuesTimer = requestAnimationFrame(function scroll() {
+                const step = 20;
+                self.scrollTo({
+                    [codeInfo.dir]: `${codeInfo.s}=${step}`,
+                    smooth: false,
+                })
+                continuesTimer = requestAnimationFrame(scroll)
+            })
+        }
+        //keydown event interval > 1 frames(in chrome is 2), but continues scroll need every frames!
         const off2 = on(el, 'keydown', e => {
             const codeInfo = keyMap[e.keyCode];
             if (!codeInfo) return;
-            if (press) {
-                this.throttleScrollTo({
-                    [codeInfo.dir]: `${codeInfo.s}=20`,
-                    smooth: !continues
-                });
-                !continues && (continues = true);
+            let prevent = true;
+            const schd = codeInfo.dir === 'left' ? this.schdX : this.schdY;
+            const cur = schd.curValue;
+            const attr = codeInfo.dir === 'left' ? 'Width' : "Height";
+            const max = el[`scroll${attr}`] - el[`client${attr}`];
+            if (press && !continues) {
+                continuesScroll(codeInfo);
             } else {
                 press = true;
                 this.scrollTo({
@@ -207,12 +217,6 @@ export class CustomScroll {
                     smooth: true
                 })
             }
-
-            let prevent = true;
-            const schd = codeInfo.dir === 'left' ? this.schdX : this.schdY;
-            const cur = schd.curValue;
-            const attr = codeInfo.dir === 'left' ? 'Width' : "Height";
-            const max = el[`scroll${attr}`] - el[`client${attr}`];
             if (this.scrollPropagation && (cur === 0 && codeInfo.s === '-' || cur === max && codeInfo.s === '+')) {
                 prevent = false;
             }
@@ -224,6 +228,7 @@ export class CustomScroll {
         })
         const off3 = on(el, 'keyup', () => {
             press = continues = false;
+            cancelAnimationFrame(continuesTimer)
         });
         this._off = () => {
             offwheel();
@@ -284,7 +289,7 @@ export class CustomScroll {
         function format(v, target) {
             if (v === undefined) return undefined;
             if (typeof v === 'number') return v;
-            const match = (v + '').match(/^([+-])=(\d*)$/);
+            const match = (v + '').match(/^([+-])=(\d*|\d*\.\d*)$/);
             if (!match) throw new Error('invalid input:', v);
             return (match[1] === '+' ? 1 : -1) * (+match[2]) + target;
         }
