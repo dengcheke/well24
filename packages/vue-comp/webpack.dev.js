@@ -42,10 +42,9 @@ module.exports = {
                             [
                                 "@babel/preset-env",
                                 {
-                                    "modules": "commonjs",
-                                    "targets":{
-                                        ie:11
-                                    }
+                                    "targets": {
+                                        "ie": "11"
+                                    },
                                 }
                             ]
                         ],

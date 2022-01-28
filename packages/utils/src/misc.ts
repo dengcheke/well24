@@ -49,11 +49,32 @@ export async function sleep(t: number = 1000) {
     })
 }
 
-export async function loadImg(src:any){
-    return new Promise<HTMLImageElement>((resolve,reject)=>{
+export async function loadImg(src: any) {
+    return new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
         img.onerror = err => reject(err);
         img.src = src;
     })
 }
+
+const vendors = 'ms o moz webkit'.split(' ');
+
+export function supportCss3(prop:string) {
+    const div = document.createElement('div');
+    if (prop in div.style) return true;
+    prop = prop.replace(/^[a-z]/, function (val) {
+        return val.toUpperCase();
+    });
+    for (let i = 0; i < vendors.length; i++) {
+        const prefix = vendors[i];
+        if (prefix + prop in div.style) {
+            return true;
+        }
+    }
+    return false;
+}
+
+export const isIE = /*#__PURE__*/(function isIE(){
+    return "ActiveXObject" in window;
+})()

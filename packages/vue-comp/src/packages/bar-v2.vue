@@ -1,7 +1,7 @@
 <template>
-    <div :class="['new-scrollbar__bar', 'is-' + bar.key]">
+    <div :class="['scrollbar-bar', 'is-' + bar.key]">
         <div ref="thumb"
-             class="scrollbar__thumb"
+             class="scrollbar-thumb"
              :style="getThumbStyle()">
         </div>
     </div>
@@ -24,6 +24,7 @@ const BAR_MAP = {
 };
 export default {
     name: "new-bar",
+    inject:['scrollbar'],
     props: {
         vertical: Boolean,
         data: Object
@@ -31,46 +32,49 @@ export default {
     computed: {
         bar() {
             return BAR_MAP[this.vertical ? 'vertical' : 'horizontal'];
-        }
-    },
-    created() {
-        this.wrap = null;
+        },
     },
     mounted() {
         const el = this.$el;
         const thumb = this.$refs.thumb;
         const off = new dragHelper(thumb, ({e, type, state}) => {
-            if (!this.wrap) return;
-            e.stopPropagation();
             const vertical = this.vertical;
             if (type === 'start') {
+                this.scrollbar.isDragScroll = true;
                 state.oldOpacity = this.$el.style.opacity;
                 state.v = vertical ? e.clientY : e.clientX;
                 state.beginValue = this.data.move;
                 state.ratio = this.data.scrollSize / this.data.clientSize;
-                this.$el.style.opacity = 0;
+                this.$el.style.opacity = 1;
                 document.body.style.userSelect = 'none';
                 return true
             } else if (type === 'move') {
                 const v = vertical ? e.clientY : e.clientX;
                 const move = v - state.v;
-                move !== 0 && this.wrap.scrollTo({
+                move !== 0 && this.scrollbar.scrollTo({
                     [vertical ? 'top' : 'left']: move * state.ratio + state.beginValue,
                     smooth: false
                 })
-            } else {
+            } else if (type === 'end') {
+                this.scrollbar.isDragScroll = false;
                 document.body.style.userSelect = 'auto';
                 this.$el.style.opacity = state.oldOpacity;
             }
         }, {});
-        const off2 = on(el, 'click', e => {
-            if (!this.wrap) return;
+        let x, y;
+        const off2 = on(el, 'mousedown', (e) => {
+            x = e.clientX;
+            y = e.clientY;
+        })
+        const off3 = on(el, 'mouseup', e => {
+            const dir = Math.hypot(e.clientX - x, e.clientY - y);
+            if (dir > 2) return;
             const rect = thumb.getBoundingClientRect();
             const ratio = this.data.scrollSize / this.data.clientSize;
             const v = this.vertical ? e.clientY - (rect.top + rect.bottom) * 0.5
                 : e.clientX - (rect.left + rect.right) * 0.5;
             const move = ratio * v;
-            this.wrap.scrollTo({
+            this.scrollbar.scrollTo({
                 [this.vertical ? 'top' : 'left']: this.data.move + move,
                 smooth: true
             })
@@ -78,6 +82,7 @@ export default {
         this.$once('hook:beforeDestroy', () => {
             off();
             off2();
+            off3();
         })
     },
     methods: {
@@ -85,7 +90,7 @@ export default {
             const style = {};
             if (!this.data) return style;
             let {move, clientSize, scrollSize} = this.data;
-            if (scrollSize - clientSize < 1) {
+            if (scrollSize - clientSize <= 1) {
                 clientSize = scrollSize;
             }
             let temp = clientSize / scrollSize || 0;

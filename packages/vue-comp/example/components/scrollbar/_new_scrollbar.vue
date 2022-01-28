@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import NewCustomScrollbar from "../../../src/packages/new-custom-scrollbar";
+import NewCustomScrollbar from "../../../src/packages/custom-scrollbar-v2";
 export default {
     name: "_new_scrollbar",
     components: {NewCustomScrollbar},

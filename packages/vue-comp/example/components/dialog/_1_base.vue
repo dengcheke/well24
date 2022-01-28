@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="demo-wrapper">
         <p class="tip">
             dialog 分为 title,body,footer,对应三个slot,
         </p>

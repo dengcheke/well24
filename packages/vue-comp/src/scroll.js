@@ -1,4 +1,4 @@
-import {clamp, on} from "@well24/utils";
+import {clamp, isIE, on} from "@well24/utils";
 import {bindMousewheel} from "./directives/v-mousewheel";
 
 function cubicInOut(k) {
@@ -41,6 +41,7 @@ class ScrollScheduler {
                 self.timer = requestAnimationFrame(step);
                 self.onTick(self.curValue);
             } else {
+                self.onTick(self.curValue);
                 self.isScrolling = false;
             }
         })
@@ -51,7 +52,7 @@ class ScrollScheduler {
         this.stop();
         this.from = from;
         this.to = to;
-        this.dur = OneFrameTime * this.durFrames;
+        this.dur = OneFrameTime * this.durFrames * Math.min(Math.abs(from - to) / 100, 1);
         this.setTimer()
     }
 
@@ -80,7 +81,7 @@ const keyMap = {
 export class CustomScroll {
     constructor() {
         this.cb = null;
-        this.useTransform = true;
+        this.useTransform = undefined;
         this.scrollPropagation = true;
         this.target = null;
         this.x = 0;
@@ -100,13 +101,11 @@ export class CustomScroll {
     }
 
     watch(el, opts = {}) {
-        if (this.el !== el) {
-            this.el = el;
-            this.attach(el);
-        }
+        this.el = el;
+        this.attach(el);
         this.scrollPropagation = opts.scrollPropagation !== false;
         this.cb = opts.onScroll instanceof Function ? opts.onScroll : noop;
-        this.useTransform = opts.transform !== false;
+        this.useTransform = opts.useTransform !== false;
         this.target = this.useTransform ? this.el.children[0] : this.el;
         this.schdX.durFrames = this.schdY.durFrames = opts.durFrames || 30;
         this.schdX.easingFunc = this.schdY.easingFunc =
@@ -122,6 +121,10 @@ export class CustomScroll {
         let lastWheelXD = null;
         let lastWheelYD = null;
         const offwheel = bindMousewheel(el, (event, data) => {
+            if(event.ctrlKey) return;
+            if(event.shiftKey && isIE){
+                return _prevent(event);
+            }
             const cur = getTime();
             let canScroll = true;
             let needNewStart = cur - lastWheelTime > OneFrameTime * 2;
@@ -162,14 +165,21 @@ export class CustomScroll {
                     } else {
                         let oldTo = schd.to;
                         delta = clamp(oldTo + delta, 0, maxValue) - oldTo;
-                        schd.addDelta(delta);
+                        delta && schd.addDelta(delta);
                     }
                 } else {
                     schd.start(curValue, to);
                 }
-                event.preventDefault();
+                return _prevent(event)
             } else {
-                !this.scrollPropagation && event.preventDefault();
+                if(!this.scrollPropagation){
+                    return _prevent(event)
+                }
+            }
+            function _prevent(e){
+                event.preventDefault();
+                event.returnValue = false;
+                return false;
             }
         });
         //keyboard scroll
@@ -240,7 +250,7 @@ export class CustomScroll {
         }
     }
 
-    applyEffect() {
+    applyEffect(silence=false) {
         const target = this.target;
         if (this.useTransform) {
             target.style.transform = `translate(${-this.x}px,${-this.y}px)`
@@ -248,16 +258,18 @@ export class CustomScroll {
             target.scrollTop = this.y;
             target.scrollLeft = this.x;
         }
-        this.cb({
+        !silence && this.cb({
             useTransform: this.useTransform,
-            x: this.x,
-            y: this.y
+            left: this.x,
+            top: this.y
         })
     }
 
     destroy() {
         this._off?.();
         this._off = null;
+        this.schdX.destroy();
+        this.schdY.destroy();
     }
 
     scrollTo({left: x, top: y, smooth}) {

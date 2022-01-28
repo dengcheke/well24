@@ -1,7 +1,7 @@
 <template>
     <div class="app">
         <aside>
-            <custom-scrollbar :view-style="{paddingRight:'15px',paddingBottom:'15px'}">
+            <custom-scrollbar class="nav-container">
                 <div v-for="group in groups">
                     <div>{{ group.label }}</div>
                     <div v-for="item in group.children" @click="goto(item)" class="item"
@@ -12,7 +12,7 @@
             </custom-scrollbar>
         </aside>
         <main>
-            <custom-scrollbar :view-style="{display:'block',paddingRight:'15px',paddingBottom:'15px'}">
+            <custom-scrollbar>
                 <router-view/>
             </custom-scrollbar>
         </main>
@@ -93,9 +93,11 @@ export default {
 }
 
 aside {
-    padding: 20px 5px 5px 20px;
+    padding: 20px 15px 15px 20px;
     width: 250px;
-
+    .nav-container .scrollbar-view{
+        padding-right: 10px;
+    }
     .item {
         background-color: rgba(0, 0, 0, .1);
         padding: 10px;
@@ -114,8 +116,8 @@ main {
 
 .demo-wrapper {
     margin: 0 auto;
-    max-width: 1200px;
     min-width: 800px;
+    padding-right: 20px;
 }
 
 .code-switch {
