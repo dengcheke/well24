@@ -178,6 +178,7 @@ export class CustomScroll {
             }
             function _prevent(e){
                 event.preventDefault();
+                event.stopPropagation();
                 event.returnValue = false;
                 return false;
             }

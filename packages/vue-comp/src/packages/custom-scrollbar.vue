@@ -1,14 +1,22 @@
 <template>
-    <div class="custom-scrollbar" :style="calcElStyle()">
-        <div class="scrollbar__wrap" ref="wrap"
-             :style="calcWrapStyle()" @scroll.passive="handleScroll($event)">
-            <div class="scrollbar__view" :style="calcViewStyle()"
-                 :class="viewClass" ref="view">
-                <slot/>
+    <div class="custom-scrollbar"
+         @mouseenter="mouseEnter=true"
+         @mouseleave="mouseEnter=false"
+         :class="{'is-drag-scroll':isDragScroll}"
+         :style="calcElStyle()">
+        <div class="scrollbar__wrap--outer"
+             :style="calcOuterWrapStyle()"
+             style="padding:0;margin:0;overflow: hidden">
+            <div class="scrollbar__wrap--inner" :style="calcInnerWrapStyle()"
+                 @wheel="handleWheel"
+                 ref="scrollWrap" @scroll.passive="handleScroll($event)">
+                <div class="scrollbar__view" :style="calcViewStyle()" ref="view">
+                    <slot/>
+                </div>
             </div>
         </div>
-        <Bar :move="moveX" :size="sizeWidth" ref="barX"/>
-        <Bar vertical :move="moveY" :size="sizeHeight" ref="barY"/>
+        <Bar :class="{'is-active':showX}" :data="dataX" :style="calcBarStyle('x')" ref="barx"/>
+        <Bar :class="{'is-active':showY}" :data="dataY" :style="calcBarStyle('y')" vertical ref="bary"/>
     </div>
 </template>
 
@@ -16,20 +24,43 @@
 import Bar from '@src/packages/bar';
 import ResizeObserver from 'resize-observer-polyfill';
 import {clamp, getScrollbarWidth} from "@well24/utils";
+import Vue from 'vue'
+import debounce from 'lodash/debounce'
 
+const barWidthObserver = new Vue({
+    data() {
+        return {
+            barWidth: Math.ceil(getScrollbarWidth())
+        }
+    }
+})
+//window pixel scale
+window.addEventListener('resize', debounce(() => {
+    barWidthObserver.barWidth = Math.ceil(getScrollbarWidth());
+}, 200, {leading: false, trailing: true}));
 export default {
     name: "CustomScrollbar",
     components: {Bar},
     props: {
-        viewClass: {
-            type: Array | Object,
-            default: () => []
-        },
         viewStyle: {
             type: Object,
-            default: () => {
-                return {}
-            }
+            default: () => ({})
+        },
+        barWidth: {
+            type: Number,
+            default: 6
+        },
+        padding: {
+            type: Array | Number,
+            default: () => [0, 10, 10, 0]
+        },
+        autoHide: {
+            type: String, //never / leave
+            default: 'leave',
+        },
+        scrollPropagation: {
+            type: Boolean,
+            default: false
         },
         height: {
             default: '100%',
@@ -49,112 +80,186 @@ export default {
         },
     },
     data() {
-        let barWidth = Math.ceil(getScrollbarWidth());
         return {
-            elWidth:0,//宽度
-            barWidth: barWidth,//滚动条宽度
-            sizeWidth: 0,
-            sizeHeight: 0,
-            moveX: 0,
-            moveY: 0,
-            viewHeight: 0,
-            viewWidth: 0,
-            scrollLeft: 0,
-            scrollTop: 0,
+            elRect: {},
+            wrapRect: {},
+            viewRect: {},
+            scrollSize: [],
+
+            dataX: {
+                move: NaN,
+                clientSize: NaN,
+                scrollSize: NaN,
+            },
+            dataY: {
+                move: NaN,
+                clientSize: NaN,
+                scrollSize: NaN,
+            },
+
+            isDragScroll: false,
+            mouseEnter: false,
+        }
+    },
+    computed: {
+        wrapPadding() {
+            const p = this.padding;
+            if (p === null || p === undefined) return [0, 0, 0, 0];
+            return typeof p === 'number' ? [p, p, p, p] : p;
+        },
+        showBar() {
+            if (this.isDragScroll) {
+                return true
+            } else {
+                if (this.autoHide === 'never') {
+                    return true
+                } else {
+                    return this.mouseEnter
+                }
+            }
+        },
+        showX() {
+            return this.showBar && (this.dataX.clientSize || 0) + 1 < (this.dataX.scrollSize || 0);
+        },
+        showY() {
+            return this.showBar && (this.dataY.clientSize || 0) + 1 < (this.dataY.scrollSize || 0);
         }
     },
     mounted() {
-        const {barX, barY, wrap} = this.$refs;
-        barX.wrap = barY.wrap = wrap;
-        this.init();
+        this.initResizeWatcher();
+        const {barx, bary} = this.$refs;
+        barx.init(this);
+        bary.init(this);
     },
     methods: {
-        init() {
-            const el = this.$el, view = this.$refs.view;
+        initResizeWatcher() {
+            const el = this.$el, {scrollWrap, view} = this.$refs;
             const ro = new ResizeObserver(entries => {
-                let update = false;
                 const elEn = entries.find(i => i.target === el);
                 if (elEn) {
-                    update = true;
-                    this.elWidth = elEn.contentRect.width;
+                    this.elRect = elEn.contentRect
+                }
+                const wrapEn = entries.find(i => i.target === scrollWrap);
+                if (wrapEn) {
+                    this.wrapRect = wrapEn.contentRect;
+                    this.dataX.clientSize = this.wrapRect.width;
+                    this.dataY.clientSize = this.wrapRect.height;
                 }
                 const viewEn = entries.find(i => i.target === view);
                 if (viewEn) {
-                    update = true;
-                    this.viewWidth = view.offsetWidth;
-                    this.viewHeight = view.offsetHeight;
+                    this.viewRect = viewEn.contentRect;
                 }
-                update && this.$nextTick(() => this.updateScrollbar());
+                const hasContent = this.viewRect.height;
+                this.scrollSize = [
+                    hasContent ? scrollWrap.scrollWidth : 0,
+                    hasContent ? scrollWrap.scrollHeight : 0
+                ];
+                this.dataX.scrollSize = this.scrollSize[0];
+                this.dataY.scrollSize = this.scrollSize[1];
+                this.dataX.move = scrollWrap.scrollLeft;
+                this.dataY.move = scrollWrap.scrollTop;
             });
-            [el, view].forEach(i => ro.observe(i));
+            [el, scrollWrap, view].forEach(i => ro.observe(i));
             this.$once('hook:beforeDestroy', () => {
                 ro.disconnect();
             })
         },
-        updateScrollbar() {
-            let heightPercentage, widthPercentage;
-            const wrap = this.$refs.wrap;
-            if (!wrap) return;
-            if (wrap.scrollHeight - wrap.clientHeight <= 1) {
-                heightPercentage = 100;
-            } else {
-                heightPercentage = (wrap.clientHeight * 100 / wrap.scrollHeight);
-            }
-            widthPercentage = (wrap.clientWidth * 100 / wrap.scrollWidth);
-
-            this.sizeHeight = (heightPercentage < 100) ? heightPercentage : 0;
-            this.sizeWidth = (widthPercentage < 100) ? widthPercentage : 0;
+        handleScroll() {
+            const {scrollWrap} = this.$refs;
+            const {scrollTop, scrollLeft} = scrollWrap;
+            this.dataX.move = scrollLeft;
+            this.dataY.move = scrollTop;
         },
-        handleScroll(e) {
-            const wrap = this.$refs.wrap;
-            const {scrollTop, scrollLeft, clientHeight, clientWidth} = wrap;
-            this.scrollTop = scrollTop;
-            this.scrollLeft = scrollLeft;
-            this.moveY = ((scrollTop * 100) / clientHeight);
-            this.moveX = ((scrollLeft * 100) / clientWidth);
+        handleWheel(e) {
+            if (this.stopPropagation) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.returnValue = false;
+                e.cancelBubble = true;
+            }
         },
         calcElStyle() {
-            const style = {}
+            const style = {
+                padding: this.wrapPadding.map(i => i + 'px').join(' '),
+                boxSizing: 'border-box !important'
+            }
             if (typeof this.height === 'number') {
                 style.height = `${this.height}px`;
             } else if (this.height === 'auto') {
-                const min = this.minHeight, max = this.maxHeight, h = this.viewHeight;
+                const min = this.minHeight, max = this.maxHeight, h = this.viewRect.height || 0;
                 if (min && max) {
-                    style.height = clamp(h, min, max) + 'px';
+                    style.height = clamp(h, min, max);
                 } else if (min && !max) {
-                    style.height = Math.max(h, min) + 'px';
+                    style.height = Math.max(h, min);
                 } else if (!min && max) {
-                    style.height = Math.min(h, max) + 'px';
+                    style.height = Math.min(h, max);
                 } else {
-                    style.height = h + 'px';
+                    style.height = h;
                 }
+                style.height += this.wrapPadding[0];
+                style.height += this.wrapPadding[2];
+                style.height += 'px';
             } else {
                 style.height = this.height;
             }
-            this.minHeight && (style.minHeight = `${this.minHeight}px`);
-            this.maxHeight && (style.maxHeight = `${this.maxHeight}px`);
             return style;
         },
-        calcWrapStyle() {
+        calcOuterWrapStyle() {
             return {
-                height: `calc(100% + ${this.barWidth}px)`,
-                width: `calc(100% + ${this.barWidth}px)`,
+                width: this.elRect.width + 'px',
+                height: '100%'
             }
         },
-        //滚动到最下面
-        scrollToBottom(smooth) {
-            const {wrap} = this.$refs;
-            wrap && (wrap.scrollTo({
-                top: wrap.scrollHeight,
-                behavior: smooth ? "smooth" : "auto"
-            }))
-        },
-        calcViewStyle(){
+        calcInnerWrapStyle() {
             return {
+                width: `calc(100% + ${barWidthObserver.barWidth}px`,
+                height: `calc(100% + ${barWidthObserver.barWidth}px`,
+                overflow: 'scroll',
+                position: 'relative'
+            }
+        },
+        calcViewStyle() {
+            return {
+                width: this.inheritWidth ? this.wrapRect.width + 'px' : null,
                 ...(this.viewStyle || {}),
-                minWidth: this.inheritWidth ? this.elWidth + 'px' : null
+                margin: 0,
             };
-        }
+        },
+        calcBarStyle(type) {
+            const barW = this.barWidth;
+            const [t, r, b, l] = this.wrapPadding
+            if (type === 'x') {
+                const bottom = Math.max((b - barW) / 2, 0);
+                return {
+                    left: l + 'px',
+                    right: Math.max(r, barW + 2) + 'px',
+                    bottom: bottom + 'px',
+                    height: barW + 'px'
+                }
+            } else {
+                const right = Math.max((r - barW) / 2, 0);
+                return {
+                    top: t + 'px',
+                    bottom: Math.max(b, barW + 2) + 'px',
+                    right: right + 'px',
+                    width: barW + 'px'
+                }
+            }
+        },
+        scrollTo({left, top, smooth = true}) {
+            const {scrollWrap} = this.$refs;
+            if (!scrollWrap) return;
+            if (scrollWrap.scrollTo instanceof Function) {
+                scrollWrap.scrollTo({
+                    top,
+                    left,
+                    behavior: smooth ? "smooth" : "auto"
+                })
+            } else {
+                scrollWrap.scrollTop = top;
+                scrollWrap.scrollLeft = left;
+            }
+        },
     },
 }
 </script>
@@ -172,47 +277,54 @@ export default {
         }
     }
 
-    .scrollbar__wrap {
-        overflow: scroll;
-    }
-
     .scrollbar__view {
         position: relative;
         display: inline-block;
-        vertical-align: bottom;
+        float: left;
         margin: 0;
         padding: 0;
     }
 
-    .scrollbar__bar {
+    .scrollbar-bar {
+        overflow: hidden;
         position: absolute;
-        right: 2px;
-        bottom: 2px;
         z-index: 1;
-        border-radius: 4px;
         opacity: 0;
-        transition: opacity 120ms ease-out;
+        border-radius: 6px;
+        transition: all 120ms ease-out;
+        background-color: transparent;
+
+        &.is-active {
+            opacity: 1;
+            background-color: rgba(61, 56, 56, 0.3);
+        }
 
         &.is-vertical {
-            width: 6px;
-            top: 2px;
+            transform-origin: right;
 
             & > div {
                 width: 100%;
             }
+
+            &:hover {
+                transform: scaleX(1.5);
+            }
         }
 
         &.is-horizontal {
-            height: 6px;
-            left: 2px;
+            transform-origin: bottom;
 
             & > div {
                 height: 100%;
             }
+
+            &:hover {
+                transform: scaleY(1.5);
+            }
         }
     }
 
-    .scrollbar__thumb {
+    .scrollbar-thumb {
         position: relative;
         display: block;
         width: 0;
@@ -221,10 +333,6 @@ export default {
         border-radius: inherit;
         background-color: #30688b;
         transition: .3s background-color;
-
-        &:hover {
-            background-color: rgba(144, 147, 153, .5);
-        }
     }
 }
 </style>

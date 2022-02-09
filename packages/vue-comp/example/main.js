@@ -7,7 +7,7 @@ import App from './app';
 import CustomTable from '../src/packages/table/src/table';
 import CodePanel from './components/code-panel';
 import Dialog from '../src/packages/custom-dialog';
-import Scrollbar from '../src/packages/custom-scrollbar-v2';
+import Scrollbar from '../src/packages/custom-scrollbar';
 
 Vue.component(CustomTable.name, CustomTable);
 Vue.component('code-panel', CodePanel);

@@ -1,8 +1,8 @@
 <template>
     <div class="app">
         <aside>
-            <custom-scrollbar class="nav-container">
-                <div v-for="group in groups">
+            <custom-scrollbar class="nav-container" auto-hide="never">
+                <div v-for="group in groups" style="padding-right: 10px">
                     <div>{{ group.label }}</div>
                     <div v-for="item in group.children" @click="goto(item)" class="item"
                          :class="{'is-current':item.pathName===curComp}">
@@ -12,7 +12,7 @@
             </custom-scrollbar>
         </aside>
         <main>
-            <custom-scrollbar>
+            <custom-scrollbar auto-hide="never">
                 <router-view/>
             </custom-scrollbar>
         </main>
@@ -53,7 +53,6 @@ export default {
                     label:'scrollbar',
                     children: [
                         {label:"base",pathName: '/scrollbar/1'},
-                        {label:"new",pathName: '/scrollbar/2'}
                     ]
                 },
                 {
