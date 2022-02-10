@@ -42,6 +42,7 @@ module.exports = {
                 if(resolvePath.indexOf('.')!==0){
                     resolvePath = './' + resolvePath;
                 }
+                resolvePath = resolvePath.replace(/\\/g,'/');
                 cb(null,resolvePath);
             }else{
                 cb();
