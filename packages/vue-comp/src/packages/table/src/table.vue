@@ -1,18 +1,20 @@
 <template>
-    <div class="custom-table outer-wrapper" :uid="'table_uid_'+_globalTableId"
-         :style="calcElStyle()">
-        <div class="inner-wrapper" :style="calcInnerStyle()" ref="innerWrap"
-             style="z-index: 0" v-mousewheel="handleMousewheel">
+    <div class="custom-table outer-wrapper"
+         @mouseenter="mouseEnter=true"
+         @mouseleave="mouseEnter=false"
+         :class="{'is-drag-scroll':isDragScroll}"
+         :uid="'table_uid_'+_globalTableId"
+         :style="_calcElStyle()">
+        <div class="inner-wrapper" :style="_calcInnerStyle()"
+             ref="innerWrap" style="z-index: 0">
             <div class="table-main">
                 <div class="table__header-wrapper" ref="headerWrap" v-show="showHeader">
                     <table-header/>
                 </div>
                 <div class="table__body-wrapper" ref="bodyWrap"
-                     @scroll.passive="handleScroll($event)"
-                     @mouseleave="mouseLeaveTable">
-                    <!--监听table变化,resize-observer-polyfill无法监听table,包装一下-->
+                     @mouseleave="_mouseLeaveTable">
                     <div class="resize-observer-wrapper" ref="bodyResizeWrap"
-                         style="display: inline-block;vertical-align: top">
+                         style="display: inline-block;float:left;position:relative">
                         <table-body/>
                     </div>
                 </div>
@@ -27,7 +29,7 @@
                     <table-header fixed="left"/>
                 </div>
                 <div class="table__body-wrapper fixed-left" ref="bodyWrapLeft"
-                     :style="{height:bodyWrapHeight+'px'}">
+                     :style="{height:bodyRect.height+'px'}">
                     <table-body fixed="left"/>
                 </div>
                 <div class="table__footer-wrapper fixed-left">
@@ -38,22 +40,25 @@
                  :class="{'fixed-shadow':showRightShadow}"
                  :style="{ width:fixedRightWidth+'px'}">
                 <div class="table__header-wrapper fixed-right" v-show="showHeader"
-                     :style="{height:headerWrapHeight+'px'}">
+                     :style="{height:headerRect.height+'px'}">
                     <table-header fixed="right" style="position: absolute;right: 0;top:0;"/>
                 </div>
                 <div class="table__body-wrapper fixed-right" ref="bodyWrapRight"
-                     :style="{height:bodyWrapHeight+'px'}">
+                     :style="{height:bodyRect.height+'px'}">
                     <table-body fixed="right" style="position: absolute;right: 0;top:0;"/>
                 </div>
                 <div class="table__footer-wrapper fixed-right"
-                     :style="{height: footerWrapHeight+'px'}">
+                     :style="{height: footerRect.height+'px'}">
                     <table-footer fixed="right" style="position: absolute;right: 0;top:0;"/>
                 </div>
             </div>
-            <bar vertical :move="moveY" :size="sizeHeight" ref="barY" style="z-index: 3"
-                 :style="{top:headerWrapHeight+'px',bottom:footerWrapHeight+'px'}"/>
-            <bar :move="moveX" :size="sizeWidth" ref="barX" style="z-index: 3"/>
-            <empty-slot v-show="empty" :style="calcEmptyStyle()" style="z-index: 4"/>
+            <bar :class="{'is-active':showX,'table-scrollbar':true}"
+                 :data="dataX" ref="barX"
+                 :style="_calcBarStyle('x')"/>
+            <bar :class="{'is-active':showY,'table-scrollbar':true}"
+                 :data="dataY" ref="barY" vertical
+                 :style="_calcBarStyle('y')"/>
+            <empty-slot v-show="empty" :style="_calcEmptyStyle()" style="z-index: 4"/>
             <div v-if="isDragCol" class="drag-line" style="z-index: 5"
                  :style="{top:dragLineTop+'px',left:dragLineLeft+'px'}"/>
         </div>
@@ -61,8 +66,7 @@
 </template>
 
 <script type="text/babel">
-import {clamp} from "@well24/utils";
-import {vMouseWheel} from "@src/directives/v-mousewheel";
+import {clamp, isIE} from "@well24/utils";
 import {TableEvent} from "./table-config";
 import EmptySlot from '@src/packages/empty-slot';
 import store from './store';
@@ -71,13 +75,21 @@ import TableBody from './table-body';
 import TableFooter from './table-footer';
 import ResizeObserver from 'resize-observer-polyfill';
 import Bar from '@src/packages/bar';
-import {animationScrollValue, getTableId, isDefined, mapping, treeToArray} from "./utils";
+import {getTableId, isDefined, mapping, treeToArray} from "./utils";
+import {ScrollScheduler} from "../../../scroll";
+import {bindMousewheel} from "../../../directives/v-mousewheel";
 
+const defaultRect = {
+    width: 0,
+    height: 0,
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+}
+const OneFrameTime = 1000 / 60;
 export default {
     name: "CustomTable",
-    directives: {
-        'mousewheel': vMouseWheel
-    },
     provide() {
         return {
             table: this,
@@ -158,6 +170,11 @@ export default {
             type: Boolean,
             default: true
         },
+        autoHide: {
+            //是否隐藏滚动条
+            type: String, //never / leave
+            default: 'leave',
+        },
 
         //style
         rowStyle: {
@@ -230,6 +247,7 @@ export default {
         this.store = new store();
         this.store.table = this;
         this._globalTableId = getTableId();
+
         //---test only---
         this.headerStyleElm = document.createElement('style');
         document.body.appendChild(this.headerStyleElm);
@@ -237,35 +255,91 @@ export default {
         this.$once('hook:beforeDestroy', () => {
             document.body.removeChild(this.headerStyleElm)
         })
-        //---------------
-        this._animScrollTop = this._animScrollLeft = null;
-        return {
-            headerWrapHeight: 0, //header容器高度
-            bodyWrapHeight: 0, //body容器高度
-            tableBodyHeight: 0,//tableBody的高度
-            footerWrapHeight: 0,//footer 容器高度
+        //---test only---
 
+        this.durFrames = 15;
+        this.scrollPropagation = true;
+        this.barWidth = 6;
+        this.barGutter = 10;
+        this.x = 0;
+        this.y = 0;
+        this.schdX = new ScrollScheduler({
+            durFrames: this.durFrames,
+            onTick: v => {
+                this.x = Math.round(v);
+                this.dataX.move = this.x;
+                const {bodyWrap, headerWrap, footerWrap} = this.$refs;
+                if (this.scrollSize[0] > this.bodyRect.width) { //存在滚动条
+                    if (this.x <= 2) {
+                        this.scrollPosition = "left";
+                    } else if ((this.scrollSize[0] - this.bodyRect.width - this.x) <= 2) {
+                        this.scrollPosition = "right";
+                    } else {
+                        this.scrollPosition = "middle";
+                    }
+                }
+                //update header
+                [bodyWrap, headerWrap, footerWrap].forEach(i => {
+                    i && (i.scrollLeft = this.x);
+                });
+            }
+        });
+        this.schdY = new ScrollScheduler({
+            durFrames: this.durFrames,
+            onTick: v => {
+                this.y = Math.round(v);
+                this.dataY.move = this.y;
+                const {bodyWrap, bodyWrapLeft, bodyWrapRight} = this.$refs;
+                [bodyWrapLeft, bodyWrap, bodyWrapRight].forEach(view => {
+                    view && (view.scrollTop = this.y);
+                });
+            },
+        });
+        return {
             //滚动相关
-            sizeWidth: 0, //滚动条thumb宽度百分比
-            sizeHeight: 0, //滚动条thumb高度百分比
-            moveX: 0, //已经移动的百分比 scrollLeft
-            moveY: 0, //已经移动的百分比 scrollTop
-            scrollLeft: 0, //当前scrollLeft值
-            scrollTop: 0, //当前scrollTop值
             scrollPosition: 'left',
 
             isDragCol: false,//在拖拽列
             dragLineLeft: 0,//拖拽线位置
             dragLineTop: 0,
+
+            dataX: {
+                move: 0,
+                clientSize: NaN,
+                scrollSize: NaN,
+                atEnd: false
+            },
+            dataY: {
+                move: 0,
+                clientSize: NaN,
+                scrollSize: NaN,
+                atEnd: false
+            },
+            mouseEnter: false,
+            isDragScroll: false,
+
+            //new
+            elRect: {...defaultRect},
+            headerRect: {...defaultRect},
+            bodyRect: {...defaultRect},
+            footerRect: {...defaultRect},
+            scrollSize: [0, 0],
         }
     },
     mounted() {
-        requestAnimationFrame(() => {
-            this.initEvent();
-            this.updateScrollBar();
-        });
+        this._initEvent();
+        this._initScroll();
+        const {barX, barY} = this.$refs;
+        barX.init(this);
+        barY.init(this);
     },
     computed: {
+        hasScrollX() {
+            return this.scrollSize[0] > this.bodyRect.width
+        },
+        hasScrollY() {
+            return this.scrollSize[1] > this.bodyRect.height
+        },
         ...mapping('store', {
             containerWidth: store => store.containerWidth || 0,
             fixedLeftCount: store => store.fixedLeftCount || 0,
@@ -275,28 +349,148 @@ export default {
             tableBodyWidth: store => store.tableBodyWidth || 0,
         }),
         showLeftShadow() {
-            const scrollX = Number(this.sizeWidth), //水平可滚动
-                scrollPosition = this.scrollPosition,
+            const scrollPosition = this.scrollPosition,
                 empty = this.empty;
-            return scrollX && scrollPosition !== 'left' && !empty;
+            return this.hasScrollX && scrollPosition !== 'left' && !empty;
         },
         showRightShadow() {
-            const scrollX = Number(this.sizeWidth),
-                scrollPosition = this.scrollPosition,
+            const scrollPosition = this.scrollPosition,
                 empty = this.empty;
-            return scrollX && scrollPosition !== 'right' && !empty;
+            return this.hasScrollX && scrollPosition !== 'right' && !empty;
         },
         empty() {
             return !this.tableData || this.tableData.length === 0
+        },
+        showBar() {
+            if (this.isDragScroll) {
+                return true
+            } else {
+                if (this.autoHide === 'never') {
+                    return true
+                } else {
+                    return this.mouseEnter
+                }
+            }
+        },
+        showX() {
+            return this.showBar && (this.dataX.clientSize || 0) + 1 < (this.dataX.scrollSize || 0);
+        },
+        showY() {
+            return this.showBar && (this.dataY.clientSize || 0) + 1 < (this.dataY.scrollSize || 0);
         }
     },
     methods: {
-        calcEmptyStyle() {
+        //初始化
+        _initEvent() {
+            //监听size change
+            const el = this.$el;
+            const {headerWrap, bodyResizeWrap, footerWrap, bodyWrap} = this.$refs;
+            const ro = new ResizeObserver((entries) => {
+                entries.forEach(en => {
+                    const target = en.target;
+                    if (target === el) {
+                        this.elRect = en.contentRect;
+                        const w = el.clientWidth;
+                        w && (this.store.containerWidth = w);
+                    } else if (target === headerWrap) {
+                        this.headerRect = en.contentRect;
+                    } else if (target === bodyWrap) {
+                        this.bodyRect = en.contentRect;
+                        this.dataX.clientSize = this.bodyRect.width;
+                        this.dataY.clientSize = this.bodyRect.height;
+                    } else if (target === footerWrap) {
+                        this.footerRect = en.contentRect;
+                    } else if (target === bodyResizeWrap) {
+                        this.scrollSize = [en.contentRect.width, en.contentRect.height];
+                        this.dataX.scrollSize = this.scrollSize[0];
+                        this.dataY.scrollSize = this.scrollSize[1];
+                    }
+                });
+            });
+            [el, headerWrap, bodyWrap, bodyResizeWrap, footerWrap].forEach(i => ro.observe(i));
+            this.$once("hooK:beforeDestroy", () => {
+                ro.disconnect();
+            });
+        },
+        _initScroll() {
+            const {innerWrap} = this.$refs;
+            let lastWheelTime = performance.now();
+            let lastWheelXD = null;
+            let lastWheelYD = null;
+            const offwheel = bindMousewheel(innerWrap, (event, data) => {
+                if (event.ctrlKey) return;
+                if (event.shiftKey && isIE) return _prevent(event);
+                const cur = performance.now();
+                let canScroll = true;
+                let needNewStart = cur - lastWheelTime > OneFrameTime * 2;
+                lastWheelTime = cur;
+                let delta, direct, curValue, maxValue;
+                const wheelDir = data.spinY > 0 ? 1 : -1;
+                if (!event.shiftKey) {
+                    maxValue = this.scrollSize[1] - this.bodyRect.height;
+                    if (maxValue < 1) return;
+                    curValue = this.y;
+                    if (maxValue === curValue && wheelDir > 0
+                        || 0 === curValue && wheelDir < 0) {
+                        canScroll = false;
+                    }
+                    direct = 'y';
+                    needNewStart = needNewStart || (wheelDir !== lastWheelYD);
+                    lastWheelYD = wheelDir;
+                    delta = wheelDir * 100; //向下正值
+                } else {
+                    maxValue = this.scrollSize[0] - this.bodyRect.width;
+                    if (maxValue < 1) return;
+                    curValue = this.x;
+                    if (maxValue === curValue && wheelDir > 0
+                        || 0 === curValue && wheelDir < 0) {
+                        canScroll = false;
+                    }
+                    direct = 'x';
+                    needNewStart = needNewStart || (wheelDir !== lastWheelXD);
+                    lastWheelXD = wheelDir;
+                    delta = wheelDir * 100 // 向右正值
+                }
+                if (canScroll) {
+                    const schd = direct === 'x' ? this.schdX : this.schdY;
+                    const to = clamp(delta + curValue, 0, maxValue);
+                    if (schd.isScrolling) {
+                        if (needNewStart) {
+                            schd.start(curValue, to);
+                        } else {
+                            let oldTo = schd.to;
+                            delta = clamp(oldTo + delta, 0, maxValue) - oldTo;
+                            delta && schd.addDelta(delta);
+                        }
+                    } else {
+                        schd.start(curValue, to);
+                    }
+                    return _prevent(event)
+                } else {
+                    if (this.scrollPropagation) {
+                        return _prevent(event)
+                    }
+                }
+
+                function _prevent(event) {
+                    event.preventDefault?.();
+                    event.stopPropagation?.();
+                    event.returnValue = false;
+                    event.cancelBubble = true;
+                    return false;
+                }
+            });
+            this.$once('hook:beforeDestroy', () => {
+                offwheel();
+            })
+        },
+
+        _calcEmptyStyle() {
             return {
                 color: 'white',
                 position: 'absolute',
-                top: this.headerWrapHeight + 'px',
-                bottom: this.footerWrapHeight + 'px',
+                top: this.headerRect.height + 'px',
+                bottom: this.footerRect.height + 'px',
                 left: 0,
                 right: 0,
                 height: 'auto',
@@ -305,7 +499,7 @@ export default {
             }
         },
         /// layout and event
-        calcElStyle() {
+        _calcElStyle() {
             const style = {};
             style.height = typeof this.height === 'number' ? `${this.height}px` : this.height;
             if (this.minHeight) style.minHeight = this.minHeight + 'px';
@@ -313,16 +507,16 @@ export default {
             return style;
         },
         //内部wrap样式
-        calcInnerStyle() {
+        _calcInnerStyle() {
             const style = {}, W = this.containerWidth;
             if (!W) return;
             const fixedWidth = this.fixedLeftWidth + this.fixedRightWidth;
             style.width = clamp(this.tableBodyWidth, 0, Math.max(fixedWidth, W)) + 'px';
             if (this.height === 'auto') { //内容自增
                 const min = this.minHeight, max = this.maxHeight;
-                let contentH = this.headerWrapHeight + this.footerWrapHeight;
+                let contentH = this.headerRect.height + this.footerRect.height;
                 if (!this.empty) {
-                    contentH += this.tableBodyHeight;
+                    contentH += this.scrollSize[1];
                 }
                 if (min && !max) {
                     style.height = Math.max(contentH, min) + 'px';
@@ -338,174 +532,31 @@ export default {
             }
             return style;
         },
-        //初始化
-        initEvent() {
-            //初始化滚动组件关联
-            const {bodyWrap, barX, barY} = this.$refs;
-            barX.wrap = barY.wrap = bodyWrap;
-
-            //监听size change
-            const el = this.$el;
-            const {headerWrap, bodyResizeWrap, footerWrap} = this.$refs;
-            const ro = new ResizeObserver((entries) => {
-                //不可见(display:none)就没必要更新
-                if (!el.offsetHeight && !el.offsetWidth) return;
-                entries.forEach(en => {
-                    const target = en.target;
-                    if (target === el) {
-                        const w = el.clientWidth;
-                        w && (this.store.containerWidth = w);
-                    } else if (target === headerWrap) {
-                        this.headerWrapHeight = headerWrap.offsetHeight;
-                    } else if (target === bodyWrap) {
-                        this.bodyWrapHeight = bodyWrap.offsetHeight;
-                    } else if (target === footerWrap) {
-                        this.footerWrapHeight = footerWrap.offsetHeight;
-                    } else if (target === bodyResizeWrap) {
-                        this.tableBodyHeight = bodyResizeWrap.clientHeight;
-                    }
-                });
-                this.$nextTick(() => {
-                    this.updateScrollBar();
-                });
-            });
-            [el, headerWrap, bodyWrap, bodyResizeWrap, footerWrap].forEach(i => ro.observe(i));
-            this.$once("hooK:beforeDestroy", () => {
-                ro.disconnect();
-            });
-        },
-        /*在中间非固定表滚动时*/
-        handleScroll(e) {
-            const target = this.$refs.bodyWrap;
-            this.scrollLeft = target.scrollLeft;
-            this.scrollTop = target.scrollTop;
-        },
-        //更新滚动条宽高
-        updateScrollBar() {
-            let heightPercentage, widthPercentage;
-            const wrap = this.$refs.bodyWrap;
-            if (!wrap) return;
-            //bug ? chrome 表格高度为 144px, scrollHeight却有145px;
-            if (wrap.scrollHeight - wrap.clientHeight <= 1) {
-                heightPercentage = 100;
-            } else {
-                heightPercentage = (wrap.clientHeight * 100 / wrap.scrollHeight);
-            }
-            widthPercentage = (wrap.clientWidth * 100 / wrap.scrollWidth);
-
-            this.sizeHeight = (heightPercentage < 100) ? heightPercentage : 0;
-            this.sizeWidth = (widthPercentage < 100) ? widthPercentage : 0;
-        },
-        //用mousewheel模拟滚动
-        handleMousewheel(event, data) {
-            const bodyWrap = this.$refs.bodyWrap;
-            if (!bodyWrap) return;
-            let prevent = true;
-            if (!event.shiftKey && Math.abs(data.spinY) > 0) {
-                const maxScrollTop = bodyWrap.scrollHeight - bodyWrap.clientHeight;
-                let newTop, scrollv = data.spinY * 100; //向下正值
-                //取消之前的
-                if (this._animScrollTop) {
-                    this._animScrollTop.cancel();
-                    //在之前的预期结果上继续
-                    const {from, to} = this._animScrollTop;
-                    if ((from - to) * scrollv > 0) { //同方向
-                        newTop = this.scrollTop + scrollv;
-                    } else {
-                        newTop = this._animScrollTop.to + scrollv;
-                    }
-                } else {
-                    //在当前的结果上继续
-                    newTop = this.scrollTop + scrollv;
-                }
-                //格式化越界值
-                newTop = clamp(newTop, 0, maxScrollTop);
-                //开始新的动画
-                if (Math.abs(newTop - this.scrollTop) > 1) {
-                    this._animScrollTop = animationScrollValue(this.scrollTop, newTop, (res) => {
-                        this.scrollTop = res.value;
-                    }, () => {
-                        this._animScrollTop = null;
-                    })
-                }
-                if (
-                    (Math.abs(this.scrollTop - maxScrollTop) < 1 && scrollv > 0)
-                    || (this.scrollTop < 1 && scrollv < 0)
-                ) {
-                    prevent = false;
+        _calcBarStyle(type) {
+            const hasFooter = this.footerRect.height > 0;
+            const gap = Math.max((this.barGutter - this.barWidth) * 0.5, 0);
+            if (type === 'x') {
+                return {
+                    left: '2px',
+                    right: (hasFooter ? 2 : (this.hasScrollY ? this.barGutter : 2)) + 'px',
+                    height: this.barWidth + 'px',
+                    bottom: gap + this.footerRect.height + 'px',
+                    zIndex: 3
                 }
             } else {
-                //when wheel with shiftKey, why spinY is 1 but spinX is 0?
-                let spin = Math.abs(data.spinX) || Math.abs(data.spinY);
-                if (event.shiftKey && spin) {
-                    const maxScrollLeft = bodyWrap.scrollWidth - bodyWrap.clientWidth;
-                    let newLeft, scrollv = (data.spinX || data.spinY) * 100;
-                    if (this._animScrollLeft) {
-                        this._animScrollLeft.cancel();
-                        newLeft = this._animScrollLeft.to + scrollv;
-                    } else {
-                        newLeft = this.scrollLeft + scrollv;
-                    }
-                    newLeft = clamp(newLeft, 0, maxScrollLeft);
-                    if (newLeft !== this.scrollLeft) {
-                        this._animScrollLeft = animationScrollValue(this.scrollLeft, newLeft, (res) => {
-                            this.scrollLeft = res.value;
-                        }, () => {
-                            this._animScrollLeft = null;
-                        });
-                    }
-                    if (
-                        (this.scrollLeft === maxScrollLeft && scrollv > 0)
-                        || (this.scrollLeft === 0 && scrollv < 0)
-                    ) {
-                        prevent = false;
-                    }
+                return {
+                    right: gap + 'px',
+                    top: this.headerRect.height + 2 + 'px',
+                    bottom: (hasFooter ? this.footerRect.height + 2 : (this.hasScrollX ? this.barGutter : 2)) + 'px',
+                    width: this.barWidth + 'px',
+                    zIndex: 3
                 }
             }
-            prevent && event.preventDefault();
         },
-        //鼠标离开组件时
-        mouseLeaveTable() {
+        _mouseLeaveTable() {
             this.store.hover$Idx = this.store.hoverRow = null;
         },
-        //重置滚动位置
-        resetScroll(cross = "left", down = 'top') {
-            this.$nextTick(() => {
-                const {bodyWrap, bodyWrapLeft, bodyWrapRight} = this.$refs;
-                let scrollLeft = this._parseCross(cross),
-                    scrollTop = this._parseDown(down);
-                [bodyWrap, bodyWrapLeft, bodyWrapRight].forEach(wrap => {
-                    if (wrap) {
-                        scrollTop !== undefined && (wrap.scrollTop = scrollTop);
-                        scrollLeft !== undefined && (wrap.scrollLeft = scrollLeft);
-                    }
-                });
-            })
-        },
-        _parseCross(cross) {
-            const {bodyWrap} = this.$refs;
-            if (typeof cross === 'number') {
-                return cross
-            } else if (cross === 'right') {
-                return bodyWrap ? bodyWrap.scrollWidth - bodyWrap.clientWidth : 0;
-            } else if (cross === 'left') {
-                return 0
-            } else {
-                return undefined
-            }
-        },
-        _parseDown(down) {
-            const {bodyWrap} = this.$refs;
-            if (typeof down === 'number') {
-                return down
-            } else if (down === 'bottom') {
-                return bodyWrap ? bodyWrap.scrollHeight - bodyWrap.clientHeight : 0;
-            } else if (down === 'top') {
-                return 0
-            } else {
-                return undefined
-            }
-        },
+
         /*代理子组件事件*/
         dispatchEvent(topic, ...args) {
             this.$emit(topic, ...args);
@@ -759,36 +810,42 @@ export default {
             return this.store.sortColumns;
         },
 
-    },
-    watch: {
-        scrollTop: function () {
-            const {bodyWrap, bodyWrapLeft, bodyWrapRight} = this.$refs;
-            //update scroll bar
-            this.moveY = ((this.scrollTop * 100) / bodyWrap.clientHeight);
-            //update scroll
-            [bodyWrapLeft, bodyWrap, bodyWrapRight].forEach(view => {
-                view && (view.scrollTop = this.scrollTop);
-            });
-        },
-        scrollLeft: function () {
-            const {bodyWrap, headerWrap, footerWrap} = this.$refs;
-            //update scroll bar
-            this.moveX = ((this.scrollLeft * 100) / bodyWrap.clientWidth);
-            //calc 滚动位置，方便显示 固定列的左右shadow
-            if (bodyWrap.scrollWidth > bodyWrap.clientWidth) { //存在滚动条
-                if (this.scrollLeft <= 2) {
-                    this.scrollPosition = "left";
-                } else if ((bodyWrap.scrollWidth - bodyWrap.clientWidth - this.scrollLeft) <= 2) {
-                    this.scrollPosition = "right";
-                } else {
-                    this.scrollPosition = "middle";
+        scrollTo({left: x, top: y, smooth = true}) {
+            const {schdX, schdY} = this;
+            const maxX = this.scrollSize[0] - this.bodyRect.width;
+            const maxY = this.scrollSize[1] - this.bodyRect.height;
+            const curX = schdX.curValue;
+            const curY = schdY.curValue;
+            x = clamp(format(x, curX), 0, maxX);
+            y = clamp(format(y, curY), 0, maxY);
+            const scrollX = !isNaN(x) && x !== curX;
+            const scrollY = !isNaN(y) && y !== curY;
+            if (smooth !== false) {
+                scrollX && schdX.start(curX, x);
+                scrollY && schdY.start(curY, y);
+            } else {
+                if (scrollX) {
+                    schdX.stop();
+                    schdX.curValue = x;
+                    schdX.onTick(x);
+                }
+                if (scrollY) {
+                    schdY.stop();
+                    schdY.curValue = y;
+                    schdY.onTick(y);
                 }
             }
-            //update header
-            [bodyWrap, headerWrap, footerWrap].forEach(i => {
-                i && (i.scrollLeft = this.scrollLeft);
-            });
-        },
+
+            function format(v, target) {
+                if (v === undefined) return undefined;
+                if (typeof v === 'number') return v;
+                const match = (v + '').match(/^([+-])=(\d*|\d*\.\d*)$/);
+                if (!match) throw new Error('invalid input:', v);
+                return (match[1] === '+' ? 1 : -1) * (+match[2]) + target;
+            }
+        }
+    },
+    watch: {
         tableCols: {
             handler: function (cols) {
                 if (cols && cols.length) {
@@ -801,7 +858,7 @@ export default {
         tableData: {
             handler: function (newly, older) {
                 //重新赋值,滚动到左上角
-                newly !== older && this.resetScrollOnDataChange && this.resetScroll(0, 0);
+                newly !== older && this.resetScrollOnDataChange && this.scrollTo({left: 0, top: 0, smooth: false});
                 this.store.handleTableDataChange();
             },
             immediate: true

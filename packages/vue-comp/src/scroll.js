@@ -13,7 +13,7 @@ const getTime = () => {
     return performance.now();
 };
 
-class ScrollScheduler {
+export class ScrollScheduler {
     constructor({onTick, durFrames, easing}) {
         this.easingFunc = easing instanceof Function ? easing : cubicInOut;
         this.onTick = onTick;
@@ -176,10 +176,11 @@ export class CustomScroll {
                     return _prevent(event)
                 }
             }
-            function _prevent(e){
-                event.preventDefault();
-                event.stopPropagation();
+            function _prevent(event){
+                event.preventDefault?.();
+                event.stopPropagation?.();
                 event.returnValue = false;
+                event.cancelBubble = true;
                 return false;
             }
         });

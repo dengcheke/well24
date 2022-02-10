@@ -90,10 +90,6 @@ const code1 = `
                                         }}>详情</span>
                                     }
                                 },
-                                {
-                                    key: '__gutter__', width: 10,
-                                    cellClass: 'gutter', fixed: 'right'
-                                }
                             ],
                             footerData: [
                                 {},
@@ -159,10 +155,6 @@ export default {
                             console.log('你点击了:', row);
                         }}>详情</span>
                     }
-                },
-                {
-                    key: '__gutter__', width: 10,
-                    cellClass: 'gutter', fixed: 'right'
                 }
             ],
             footerData: [{}, {__check__: '自定义其他内容'}],

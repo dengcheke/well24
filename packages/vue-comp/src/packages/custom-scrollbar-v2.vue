@@ -256,7 +256,7 @@ export default {
 </script>
 
 <style lang="less">
-.scrollbar-outer-wrapper2 {
+.scrollbar-outer-wrapper {
     width: 100%;
     position: relative;
     overflow: hidden;

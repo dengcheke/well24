@@ -18,8 +18,7 @@ export function getColId() {
 const _toString = Object.prototype.toString,
     _Object = '[object Object]',
     _Function = '[object Function]',
-    _Array = '[object Array]',
-    _Set = '[object Set]';
+    _Array = '[object Array]';
 
 /**
  * 解析宽度
@@ -81,16 +80,13 @@ export function resolveClass(clazz, ...args) {
     return c;
 }
 
-
 //****
 export function moveItemNewHasInOld(iter, older, newly) {
     let type = _toString.call(older);
     if (type === _Array) {
         moveItemNewHasInOld_Array(iter, older, newly);
-    } else if (type === _Set) {
-        moveItemNewHasInOld_Set(iter, older, newly);
     } else {
-        throw new Error('??奇怪的类型')
+        moveItemNewHasInOld_Set(iter, older, newly);
     }
 }
 
@@ -112,9 +108,7 @@ export function moveItemNewHasInOld_Set(iter, oldSet, s) {
         }
     })
 }
-
 //****
-
 
 export const isNotEmptyArray = (array) => (Array.isArray(array) && array.length);
 
@@ -134,126 +128,18 @@ export const walkTreeNode = function (root, cb, childrenKey = 'children', dfs = 
     }
 }
 Object.defineProperty(walkTreeNode, 'STOP', {
-    value: window.Symbol ? Symbol() : '随便一个唯一值'
+    value: window.Symbol ? Symbol() : Math.random() + '_' + Math.random()
 })
 
-
-const baseFrameMap = [3, 6, 8, 9, 10, 11, 12, 13, 13, 14, 15, 15, 16, 17, 17]
-const _fMap = {};
-
-function getScrollTotalTimes(v) {
-    if (_fMap[v / 20 >> 0]) return _fMap[v / 20 >> 0] * 16.66;
-    let f = getFrame(v, Math.ceil(Math.log2(v / 300)));
-    v > 160 && (f += 1);
-    f = Math.min(40, f);
-    return f * 16.66;
-
-    function getFrame(v, e) {
-        if (e <= 0) {
-            return baseFrameMap[(v / 20 - 1) >> 0];
-        } else {
-            const idx = v / 20 >> 0;
-            if (_fMap[idx]) return _fMap[idx];
-            const _v = 300 * Math.pow(2, e - 1);
-            const res = getFrame(_v, e - 1) + (v - _v) / (20 * (e + 1)) >> 0;
-            _fMap[idx] = res;
-            return res;
-        }
-    }
-}
-
-/**
- * 滚动动画
- * @param from, 开始值
- * @param to, 结束值
- * @param rafCb, 回调函数,每帧一次
- */
-export function animationScrollValue(from, to, rafCb, isDone) {
-    if(from===to) throw  new Error('from和to不能相同');
-    if(typeof rafCb !== 'function') throw  new Error('rafcb must be function');
-    //总值
-    const scrollValue = to - from, absSv = Math.abs(scrollValue);
-    //总时间
-    const totalTime = absSv <= 10 ? 0 : getScrollTotalTimes(absSv);
-    let timer;
-    const res = {
-        from: from,
-        to: to,
-        totalTime: totalTime,
-        walkTime: 0,//已经走过时间
-        delta: 0,
-        value: from,//当前值,
-        isDone: false, //是否已完成
-        cancel: () => {
-            timer && cancelAnimationFrame(timer);
-        }
-    }
-    let now = performance.now(); //当前时间
-    timer = requestAnimationFrame(function step() {
-        let _now = performance.now(), cancel = false;
-        const walkTime = (_now - now) >> 0;
-        now = _now;
-        res.walkTime += walkTime;
-        if (res.walkTime > res.totalTime) {
-            res.walkTime = res.totalTime;
-            cancel = true;
-        }
-        const percent = res.walkTime / res.totalTime;
-        const [x, y] = threeBezier(percent,
-            [0, 0], [1, 1],
-            [0.5, 0.1], [0.5, 0.9]);
-        let newValue = (scrollValue * y >> 0) + from; //新值
-        res.delta = newValue - res.value;
-        //console.log(res.delta)
-        res.value = newValue;
-        if (cancel) {
-            res.cancel();
-            res.isDone = true;
-            isDone instanceof Function && isDone.call(res,res);
-        } else {
-            timer = requestAnimationFrame(step);
-        }
-        rafCb.call(res,res);
-    });
-    return res;
-}
-
-/**
- * @desc 三阶贝塞尔
- * @param {number} t 当前百分比
- * @param {Array} p1 起点坐标
- * @param {Array} p2 终点坐标
- * @param {Array} cp1 控制点1
- * @param {Array} cp2 控制点2
- */
-function threeBezier(t, p1, p2, cp1, cp2,) {
-    const [x1, y1] = p1;
-    const [x2, y2] = p2;
-    const [cx1, cy1] = cp1;
-    const [cx2, cy2] = cp2;
-    let x =
-        x1 * (1 - t) * (1 - t) * (1 - t) +
-        3 * cx1 * t * (1 - t) * (1 - t) +
-        3 * cx2 * t * t * (1 - t) +
-        x2 * t * t * t;
-    let y =
-        y1 * (1 - t) * (1 - t) * (1 - t) +
-        3 * cy1 * t * (1 - t) * (1 - t) +
-        3 * cy2 * t * t * (1 - t) +
-        y2 * t * t * t;
-    return [x, y];
-}
-
-
-export function treeToArray(root,childKey='children',dfs=true){
+export function treeToArray(root, childKey = 'children', dfs = true) {
     let queue = [].concat(root), res = [];
-    while(queue.length){
+    while (queue.length) {
         const first = queue.shift();
         res.push(first);
-        if(first[childKey] && Array.isArray(first[childKey])){
+        if (first[childKey] && Array.isArray(first[childKey])) {
             queue = dfs
-                ? [...first[childKey],...queue] //深度
-                : [...queue,...first[childKey]] //广度
+                ? [...first[childKey], ...queue] //深度
+                : [...queue, ...first[childKey]] //广度
         }
     }
     return res;

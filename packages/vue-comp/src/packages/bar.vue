@@ -17,7 +17,7 @@ const BAR_MAP = {
         axis: 'X',
     }
 };
-import {dragHelper, off, on} from "@well24/utils";
+import {dragHelper, on} from "@well24/utils";
 
 export default {
     name: 'CustomBar',

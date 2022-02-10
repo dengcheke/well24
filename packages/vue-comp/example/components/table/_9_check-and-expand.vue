@@ -28,8 +28,8 @@
                       :table-cols="tableCols2">
             <template #expand="{row,rowIndex,$rowIndex}">
                 <div v-for="key in Object.keys(row)" style="padding: 10px 20px">
-                    <span style="color:cyan">{{ (tableCols2.find(i=>i.key===key) || {}).label}}</span>
-                    <span style="margin-left: 10px">:{{row[key]}}</span>
+                    <span style="color:cyan">{{ getLabel(key) }}</span>
+                    <span style="margin-left: 10px">:{{ row[key] }}</span>
                 </div>
             </template>
         </custom-table>
@@ -48,7 +48,7 @@
     </div>
 </template>
 
-<script type="text/jsx">
+<script type="text/babel">
 const template = {
     date: "2016-05-1",
     name: '王小虎',
@@ -254,48 +254,52 @@ export default {
     data() {
         return {
             tableCols: col,
-            tableData: new Array(20).fill(0).map((i,idx) => {
-                return {...template,name:'王小虎'+idx}
+            tableData: new Array(20).fill(0).map((i, idx) => {
+                return {...template, name: '王小虎' + idx}
             }),
             code1: code1,
-            checkAll:false,
+            checkAll: false,
 
-            tableCols2:col2,
-            renderExpand:(h,{row,rowIndex,$rowIndex})=>{
-                return Object.keys(row).map(key=>{
+            tableCols2: col2,
+            renderExpand: (h, {row, rowIndex, $rowIndex}) => {
+                return Object.keys(row).map(key => {
+                    const label = this.tableCols.find(i => i.key === key)?.label || '';
                     return <div style="padding: 10px 20px">
-                        <span style="color:cyan">{(this.tableCols.find(i=>i.key===key) || {}).label}</span>
+                        <span style="color:cyan">{label}</span>
                         <span style="margin-left: 10px">:{row[key]}</span>
                     </div>
                 })
             },
-            code2:code2,
-            code3:code3
+            code2: code2,
+            code3: code3
         }
     },
-    methods:{
-        setAll(){
+    methods: {
+        setAll() {
             this.checkAll = !this.checkAll;
             //必须指定状态
             this.$refs.table.setAllChecked(this.checkAll);
         },
-        check1(){
+        check1() {
             //必须指定rowKey，指定状态则设置为对应状态，否则切换状态
             this.$refs.table.toggleRowChecked('王小虎1');
         },
-        check2(){
+        check2() {
             this.$refs.table.toggleRowChecked(this.tableData[2]);
         },
-        expand1(){
+        expand1() {
             this.$refs.table1.toggleRowExpanded('王小虎1');
         },
-        expand2(){
+        expand2() {
             this.$refs.table1.toggleRowExpanded(this.tableData[2]);
         },
-        setAllExpand(){
+        setAllExpand() {
             this.expandAll = !this.expandAll;
             //必须指定状态
             this.$refs.table1.setAllExpanded(this.expandAll);
+        },
+        getLabel(key) {
+            return this.tableCols2.find(i => i.key === key)?.label || ''
         }
     }
 }
