@@ -15,6 +15,9 @@ export default {
         const r = ctx.props.render;
         const p = ctx.props.params;
         return r.call(null, h, p);
+    },
+    install(Vue) {
+        Vue.component(this.name, this);
     }
 }
 </script>

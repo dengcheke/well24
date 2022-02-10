@@ -11,6 +11,9 @@
     },
     "keywords": [],
     "license": "MIT",
+    "files": [
+        "dist"
+    ],
     "dependencies": {
         "@babel/runtime-corejs3": "^7.16.0",
         "intersection-observer": "^0.12.0",

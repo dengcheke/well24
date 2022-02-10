@@ -45,6 +45,9 @@ export default {
         onClickRow() {
             this.expandOnClickTitle && this.$emit('update:expand', !this.expand);
         }
+    },
+    install(Vue) {
+        Vue.component(this.name, this);
     }
 }
 </script>

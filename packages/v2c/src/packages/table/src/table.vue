@@ -76,8 +76,8 @@ import TableFooter from './table-footer';
 import ResizeObserver from 'resize-observer-polyfill';
 import Bar from '@src/packages/bar';
 import {getTableId, isDefined, mapping, treeToArray} from "./utils";
-import {ScrollScheduler} from "../../../scroll";
-import {bindMousewheel} from "../../../directives/v-mousewheel";
+import {ScrollScheduler} from "@src/scroll";
+import {bindMousewheel} from "@src/directives/v-mousewheel";
 
 const defaultRect = {
     width: 0,
@@ -876,6 +876,9 @@ export default {
             this.dispatchEvent(TableEvent.SortChange, this.store.sortColumns);
         },
     },
+    install(Vue) {
+        Vue.component(this.name, this);
+    }
 }
 </script>
 

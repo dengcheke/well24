@@ -460,6 +460,9 @@ export default {
             immediate: true
         }
     },
+    install(Vue) {
+        Vue.component(this.name, this);
+    }
 }
 </script>
 <style lang="less">

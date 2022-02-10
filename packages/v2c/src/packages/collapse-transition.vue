@@ -68,6 +68,9 @@ export default {
     render: function render(h, ctx) {
         const children = ctx.children;
         return h('transition', {on: {...Transition}}, children);
+    },
+    install(Vue) {
+        Vue.component(this.name, this);
     }
 }
 </script>

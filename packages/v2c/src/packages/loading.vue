@@ -27,6 +27,9 @@ export default {
             ].filter(Boolean)}
             </div>
         </div>
+    },
+    install(Vue) {
+        Vue.component(this.name, this);
     }
 }
 </script>

@@ -96,6 +96,9 @@ export default {
             return style;
         },
     },
+    install(Vue) {
+        Vue.component(this.name, this);
+    }
 }
 
 </script>

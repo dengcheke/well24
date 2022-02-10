@@ -15,6 +15,9 @@ export default {
             type: Boolean,
             default: true
         },
+    },
+    install(Vue) {
+        Vue.component(this.name, this);
     }
 }
 </script>

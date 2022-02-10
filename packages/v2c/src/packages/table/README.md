@@ -59,6 +59,7 @@
 | toggleTreeExpanded | 切换行的树形展开状态，不传 expanded， 则会切换状态, emit:是否触发 'expand-tree-row' 事件                                                      | function \( row / rowid, expanded, emit=true \) |
 | setAllTreeExpanded | 设置所有行的树形展开                                                                                                                          | function( expanded )                            |
 | setColumnSort      | 设置col的sort |  function( col, sort, emit=true)
+| scrollTo           | 滚动, | function({left: 左边距离,top: 上边距离, smooth: 是否平滑滚动, 默认true})
 
 ### columnObject 配置
 

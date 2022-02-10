@@ -1,39 +1,47 @@
 const path = require('path');
-const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const nodeExternals = require('webpack-node-externals');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const {entries, externals} = require('./components');
 module.exports = {
-    mode: 'development',
-    entry: {
-        app: path.resolve(__dirname, './example/main.js')
-    },
+    mode: 'production',
+    entry: entries,
     output: {
         path: path.resolve(__dirname, './dist'),
         publicPath: '/',
+        filename: '[name].js',
+        chunkFilename: '[name].js',
+        libraryTarget: 'commonjs2',
     },
     resolve: {
-        extensions: ['.js', '.vue', '.json', '.jsx'],
+        extensions: ['.js', '.vue', '.json'],
         alias: {
-            '@src': path.resolve(__dirname, './src'),
+            '@src': path.resolve(__dirname, './src')
         }
     },
-    devtool: 'source-map',
+    externals: [
+        nodeExternals({
+            additionalModuleDirs:[path.resolve(__dirname,'../../node_modules')]
+        }),
+        {
+            vue: {
+                root: 'Vue',
+                commonjs: 'vue',
+                commonjs2: 'vue',
+                amd: 'vue'
+            },
+            ...externals
+        }
+    ],
+    optimization: {
+        minimize: !false,
+    },
     module: {
         rules: [
             {
-                test: /\.vue$/,
-                loader: 'vue-loader',
-                options: {
-                    compilerOptions: {
-                        preserveWhitespace: false
-                    }
-                }
-            },
-            {
                 test: /\.m?jsx?$/,
                 include: [
-                    path.resolve(__dirname, './src'),
-                    path.resolve(__dirname, './example')
+                    path.resolve(__dirname, './src')
                 ],
                 use: [{
                     loader: 'babel-loader',
@@ -54,7 +62,15 @@ module.exports = {
                         ]
                     }
                 }],
-
+            },
+            {
+                test: /\.vue$/,
+                loader: 'vue-loader',
+                options: {
+                    compilerOptions: {
+                        preserveWhitespace: false
+                    }
+                }
             },
             {
                 test: /\.css$/,
@@ -70,22 +86,17 @@ module.exports = {
                     loader: 'url-loader',
                     options: {
                         limit: 4096,
-                        name: path.posix.join('static', '[name].[hash:8].[ext]'),
-                        esModule:false
+                        name: path.posix.join('static', '[name].[hash:8].[ext]')
                     }
                 }],
-                type: "javascript/auto"
             }
         ]
     },
-    devServer: {
-        port: 8888,
-    },
     plugins: [
-        new VueLoaderPlugin(),
-        new HtmlWebpackPlugin({
-            template: path.resolve(__dirname, './example/index.html'),
-            title: 'vue-comp'
-        })
+        new BundleAnalyzerPlugin({
+            analyzerMode: 'static',
+            openAnalyzer: false
+        }),
+        new VueLoaderPlugin()
     ]
 }
