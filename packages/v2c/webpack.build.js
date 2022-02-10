@@ -3,6 +3,11 @@ const nodeExternals = require('webpack-node-externals');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const {entries, externals} = require('./components');
+const srcRoot = path.resolve(__dirname, './src');
+const pathMap = {
+    'directives':'directives',
+    'packages':'lib',
+}
 module.exports = {
     mode: 'production',
     entry: entries,
@@ -21,8 +26,27 @@ module.exports = {
     },
     externals: [
         nodeExternals({
-            additionalModuleDirs:[path.resolve(__dirname,'../../node_modules')]
+            additionalModuleDirs: [path.resolve(__dirname, '../../node_modules')]
         }),
+        //convert to relative path
+        (context, request, cb) => {
+            const ctx = path.relative(srcRoot,context);
+            const matchesCtx = ctx.match(/^(packages|directives)[\/\\]([^\/\\]*)/);
+            const matches = request.match(/^@src[\/\\]([^\/\\]*)[\/\\](.*)/);
+            if(matches && matchesCtx){
+                const ctxType = matchesCtx[1];
+                const reqType = matches[1], reqModule = matches[2];
+                const fakePathCtx = path.resolve(__dirname,`./dist/${pathMap[ctxType]}/`);
+                const fakePathReq = path.resolve(__dirname,`./dist/${pathMap[reqType]}/${reqModule}`);
+                let resolvePath = path.relative(fakePathCtx,fakePathReq);
+                if(resolvePath.indexOf('.')!==0){
+                    resolvePath = './' + resolvePath;
+                }
+                cb(null,resolvePath);
+            }else{
+                cb();
+            }
+        },
         {
             vue: {
                 root: 'Vue',
@@ -30,11 +54,11 @@ module.exports = {
                 commonjs2: 'vue',
                 amd: 'vue'
             },
-            ...externals
-        }
+        },
+
     ],
     optimization: {
-        minimize: !false,
+        minimize: true,
     },
     module: {
         rules: [

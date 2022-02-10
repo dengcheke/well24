@@ -8,7 +8,7 @@ import Hightlightjs from './components/highlightjs';
 Vue.component('code-panel', CodePanel);
 Vue.component('highlightjs', Hightlightjs);
 
-import CustomTable from '../dist/lib/table';
+import CustomTable from '../dist/lib/custom-table';
 import Dialog from '../dist/lib/custom-dialog';
 import Scrollbar from '../dist/lib/custom-scrollbar';
 Vue.use(CustomTable);

@@ -76,7 +76,7 @@ import TableFooter from './table-footer';
 import ResizeObserver from 'resize-observer-polyfill';
 import Bar from '@src/packages/bar';
 import {getTableId, isDefined, mapping, treeToArray} from "./utils";
-import {ScrollScheduler} from "@src/scroll";
+import {ScrollScheduler} from "./scroll";
 import {bindMousewheel} from "@src/directives/v-mousewheel";
 
 const defaultRect = {
@@ -170,10 +170,15 @@ export default {
             type: Boolean,
             default: true
         },
+
         autoHide: {
             //是否隐藏滚动条
             type: String, //never / leave
             default: 'leave',
+        },
+        scrollFrames: {
+            type: Number,
+            default: 20
         },
 
         //style
@@ -264,7 +269,6 @@ export default {
         this.x = 0;
         this.y = 0;
         this.schdX = new ScrollScheduler({
-            durFrames: this.durFrames,
             onTick: v => {
                 this.x = Math.round(v);
                 this.dataX.move = this.x;
@@ -285,7 +289,7 @@ export default {
             }
         });
         this.schdY = new ScrollScheduler({
-            durFrames: this.durFrames,
+            durFrames: this.scrollFrames || 15,
             onTick: v => {
                 this.y = Math.round(v);
                 this.dataY.move = this.y;
@@ -295,6 +299,12 @@ export default {
                 });
             },
         });
+        const off = this.$watch('scrollFrames', (v) => {
+            this.schdX.durFrames = this.schdY.durFrames = v || 15;
+        }, {immediate: true});
+        this.$once('hook:beforeDestroy', () => {
+            off();
+        })
         return {
             //滚动相关
             scrollPosition: 'left',

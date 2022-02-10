@@ -1,5 +1,5 @@
 import {clamp, isIE, on} from "@well24/utils";
-import {bindMousewheel} from "./directives/v-mousewheel";
+import {bindMousewheel} from "@src/directives/v-mousewheel";
 
 function cubicInOut(k) {
     if ((k *= 2) < 1) return 0.5 * k * k * k;

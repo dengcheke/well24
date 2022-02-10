@@ -12,7 +12,7 @@
 </template>
 
 <script type="text/jsx">
-import {TABLE} from '@src/packages/table/src/table-config'
+import {TABLE} from '../../../dist/lib/custom-table'
 
 const template = {
     date: "2016-05-1",
