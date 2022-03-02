@@ -5,7 +5,8 @@
     "scripts": {
         "clean": "rimraf ./node_modules && rimraf ./dist",
         "dev": "webpack-dev-server --config ./webpack.dev.js",
-        "build": "rimraf ./dist && webpack --config ./webpack.build.js"
+        "build": "rimraf ./dist && webpack --config ./webpack.build.js && npm run copy",
+        "copy": "ncp ./src/assets ./dist/style"
     },
     "keywords": [],
     "license": "MIT",
