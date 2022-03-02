@@ -1,6 +1,6 @@
 {
     "name": "@well24/v2c",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "vue2-comp",
     "scripts": {
         "clean": "rimraf ./node_modules && rimraf ./dist",
