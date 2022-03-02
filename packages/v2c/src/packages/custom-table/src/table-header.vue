@@ -207,6 +207,7 @@ export default {
         const trs = [];
         for (let level = 0; level <= this.maxLevel; level++) {
             const columns = this.columnLevelMap[level];
+            if(!columns || !columns.length) continue;
             const cols = columns.map(i => i.col);
             let hasCheckCol = {count: 0};
             const tds = columns.map((colNode, colIndex) => {

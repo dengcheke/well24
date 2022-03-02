@@ -63,12 +63,12 @@ const data1 = [
     }
 ];
 const cols = [
-    {key: 'date', label: '日期'},
+    /*{key: 'date', label: '日期'},
     {key: 'name', label: '名称'},
     {key: 'province', label: '省份'},
     {key: 'city', label: '市区'},
     {key: 'address', label: '地址'},
-    {key: 'zip', label: '邮编'},
+    {key: 'zip', label: '邮编'},*/
 ];
 const cols1 = [
     {key: 'date', label: '日期'},
