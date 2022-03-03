@@ -27,7 +27,7 @@ export const vLoading = {
         toggleLoading(el, binding);
     },
     update(el, binding) {
-        toggleLoading(el, binding)
+        toggleLoading(el, binding);
     },
     unbind(el, binding) {
         toggleLoading(el,binding);
