@@ -4,7 +4,7 @@ const map = /*#__PURE__*/new WeakMap();
 const toggleLoading = (el, binding) => {
     const mask = map.get(el);
     if (!mask) return;
-    const param = binding.value;
+    const param = binding?.value;
     if (Object.prototype.toString.call(param) === '[object Object]') {
         mask.show = param.show !== false;
         mask.content = param.content;
@@ -30,7 +30,7 @@ export const vLoading = {
         toggleLoading(el, binding)
     },
     unbind(el, binding) {
-        toggleLoading(el);
+        toggleLoading(el,binding);
         const mask = map.get(el);
         map.delete(el);
         mask?.$destroy();
