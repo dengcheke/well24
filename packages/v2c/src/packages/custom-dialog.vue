@@ -192,6 +192,7 @@ export default {
     mounted() {
         const dialog = this.$refs.dialog;
         const title = this.$refs.title;
+        const wrapper = this.$refs.dialogWrapper;
         let direction = null, resizeHit = false;
         const offResizeCheck = on(dialog, 'mousemove', rafThrottle((e) => {
             if (!this.resizable || this.curEvent || this.fullScreen) return;
@@ -249,6 +250,7 @@ export default {
                     this.curEvent = Event.None;
                 }
                 if (this.curEvent) {
+                    wrapper.style.pointerEvents = 'auto';
                     state.x = e.clientX;
                     state.y = e.clientY;
                     state.dialogRect = dialog.getBoundingClientRect();
@@ -292,6 +294,7 @@ export default {
                 document.body.style.userSelect = 'auto';
                 this.isDragging = false;
                 this.isResizing = false;
+                wrapper.style.pointerEvents = '';
             }
         }, {})
         this.$once('hook:beforeDestroy', () => {
