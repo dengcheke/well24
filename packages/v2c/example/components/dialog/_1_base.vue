@@ -13,7 +13,8 @@
         <p> paddingTarget: 应用边距的元素, null(dialog) / 'header'(title) /HTMLElement</p>
         <p> resize: 是否可拖拽改变大小, false / true/ {
             directions: 'all'/ ['top' / 'left' / 'bottom' / 'right'],
-            zoneSize: 8
+            zoneSize: 8,
+            onResize: ({width, height})=>{}
             }</p>
         <div style="margin-bottom: 10px">
             <span class="btn" :class='{active:show}' @click="show=!show">切换show</span>
@@ -186,11 +187,15 @@ export default {
         handleResize(v) {
             if (this.resize === false) {
                 this.resize = {
-                    directions: 'all'
+                    directions: 'all',
+                    onResize: this.onResize
                 }
             } else {
                 this.resize = false;
             }
+        },
+        onResize(args){
+            console.log(args)
         }
     }
 }

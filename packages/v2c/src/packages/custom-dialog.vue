@@ -105,7 +105,8 @@ export default {
         resize: {
             /*是否可拖拽改变大小, false/true/{
                 directions:all/top/left/bottom/right,
-                zoneSize: 8
+                zoneSize: 8,
+                onResize: ()=>{}
             }*/
             type: Boolean | Object,
             default: false,
@@ -343,27 +344,38 @@ export default {
             const moveX = e.clientX - x;
             const moveY = e.clientY - y;
             const drs = direction.split('-');
+            let _w = width, _h = height;
+            // the top,left is relative to viewport.
+            // but element style.top is relative to parent;
             const updateMap = {
                 top() {
                     const h = clamp(height - moveY, minHeight, maxHeight);
                     dialog.style.top = top + height - h - Top + 'px';
+                    _h = h;
                     dialog.style.height = h + 'px';
                 },
                 bottom() {
                     const h = clamp(height + moveY, minHeight, maxHeight);
+                    _h = h;
                     dialog.style.height = h + 'px';
                 },
                 left() {
                     const w = clamp(width - moveX, minWidth, maxWidth);
                     dialog.style.left = left + width - w - Left + 'px';
                     dialog.style.width = w + 'px';
+                    _w = w;
                 },
                 right() {
                     const w = clamp(width + moveX, minWidth, maxWidth);
                     dialog.style.width = w + 'px';
+                    _w = w;
                 },
             }
             drs.forEach(dir => updateMap[dir]());
+            this.resizeOpts.onResize?.({
+                width: _w,
+                height: _h
+            });
         },
         // 新显示的dialog，z-index提升到最上层
         promoteDialogZIndex() {
@@ -452,6 +464,7 @@ export default {
                 } else {
                     this.resizable = true;
                     this.resizeOpts = {
+                        ...v,
                         zoneSize: v.zoneSize || 8,
                         directions: v.directions
                     }
