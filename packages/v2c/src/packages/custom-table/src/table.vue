@@ -58,7 +58,9 @@
             <bar :class="{'is-active':showY,'table-scrollbar':true}"
                  :data="dataY" ref="barY" vertical
                  :style="_calcBarStyle('y')"/>
-            <empty-slot v-show="empty" :style="_calcEmptyStyle()" style="z-index: 4"/>
+            <empty-slot v-show="empty" :style="_calcEmptyStyle()" style="z-index: 4">
+                <slot name="empty"/>
+            </empty-slot>
             <div v-if="isDragCol" class="drag-line" style="z-index: 5"
                  :style="{top:dragLineTop+'px',left:dragLineLeft+'px'}"/>
         </div>
