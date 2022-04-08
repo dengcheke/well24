@@ -507,7 +507,6 @@ export default {
                 right: 0,
                 height: 'auto',
                 width: 'auto',
-                backgroundColor: '#021828'
             }
         },
         /// layout and event
