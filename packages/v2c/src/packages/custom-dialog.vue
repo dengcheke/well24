@@ -13,7 +13,7 @@ function removeFromCache(dialog) {
     idx !== -1 && winShowCache.splice(idx, 1);
 }
 
-on(document.body, 'keyup', (e) => {
+on(window, 'keyup', e => {
     if (e.keyCode === 27) {//Escape
         let top;
         for (let i = winShowCache.length - 1; i >= 0; i--) {
