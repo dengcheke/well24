@@ -113,6 +113,7 @@ export async function clipImg(src: string, srcx: number, srcy: number, srcw: num
  */
 export function measureText(text: string, font = DEFAULT_FONT) {
     const {ctx} = getCtx();
+    ctx.font = font;
     const metric = ctx.measureText(text);
     return [
         metric.width,
