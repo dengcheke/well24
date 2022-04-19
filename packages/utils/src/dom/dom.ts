@@ -197,6 +197,7 @@ export function dragHelper(el: EventTarget, eventHandler: Function, init?: Funct
         if (goOn) {
             if (last) last();
             const off1 = on(document, 'pointermove', rafThrottle((e: any) => {
+                if(cancel._isCancel) return;
                 eventHandler({e: e, type: "move", state, cancel});
             }));
             const off2 = on(document, 'pointerup', e => {
