@@ -1,6 +1,6 @@
 {
     "name": "@well24/v2c",
-    "version": "1.1.9",
+    "version": "1.1.10",
     "description": "vue2-comp",
     "scripts": {
         "clean": "rimraf ./node_modules && rimraf ./dist",
@@ -18,7 +18,7 @@
     },
     "dependencies": {
         "@babel/runtime-corejs3": "^7.16.0",
-        "@well24/utils": "^1.1.2",
+        "@well24/utils": "^1.1.3",
         "lodash": "^4.17.21",
         "normalize-wheel": "^1.0.1",
         "resize-observer-polyfill": "^1.5.1"
