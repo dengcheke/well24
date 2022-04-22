@@ -23,7 +23,7 @@
 <script>
 import Bar from '@src/packages/bar';
 import ResizeObserver from 'resize-observer-polyfill';
-import {clamp, getScrollbarWidth} from "@well24/utils";
+import {clamp, getScrollbarWidth, rafThrottle} from "@well24/utils";
 import Vue from 'vue'
 import debounce from 'lodash/debounce'
 
@@ -134,7 +134,7 @@ export default {
     methods: {
         initResizeWatcher() {
             const el = this.$el, {scrollWrap, view} = this.$refs;
-            const ro = new ResizeObserver(entries => {
+            const ro = new ResizeObserver(rafThrottle(entries => {
                 const elEn = entries.find(i => i.target === el);
                 if (elEn) {
                     this.elRect = elEn.contentRect
@@ -158,7 +158,7 @@ export default {
                 this.dataY.scrollSize = this.scrollSize[1];
                 this.dataX.move = scrollWrap.scrollLeft;
                 this.dataY.move = scrollWrap.scrollTop;
-            });
+            }));
             [el, scrollWrap, view].forEach(i => ro.observe(i));
             this.$once('hook:beforeDestroy', () => {
                 ro.disconnect();
