@@ -237,6 +237,7 @@ export default {
         },
         calcViewStyle() {
             return {
+                width: this.inheritWidth ? this.wrapRect.width + 'px' : null,
                 ...(this.viewStyle || {}),
                 margin: 0,
             };
