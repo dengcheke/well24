@@ -74,9 +74,20 @@ export default {
             default: null,
             type: Number
         },
+        minWidth: {
+            default: null,
+            type: Number,
+            desc: '在inheritWidth为false时有效'
+        },
+        maxWidth: {
+            default: null,
+            type: Number,
+            desc: '在inheritWidth为false时有效'
+        },
         inheritWidth: {
             type: Boolean,
-            default: true
+            default: true,
+            desc: '为true, 父元素宽度受外部控制, 为false, 受view宽度以及min,max控制'
         },
     },
     data() {
@@ -123,7 +134,7 @@ export default {
         },
         showY() {
             return this.showBar && (this.dataY.clientSize || 0) + 1 < (this.dataY.scrollSize || 0);
-        }
+        },
     },
     mounted() {
         this.initResizeWatcher();
@@ -181,21 +192,27 @@ export default {
         calcElStyle() {
             const style = {
                 padding: this.wrapPadding.map(i => i + 'px').join(' '),
-                boxSizing: 'border-box !important'
+                boxSizing: 'border-box !important',
+                border: 'none !important',
             }
+
+            let width = null;
+            if (!this.inheritWidth) {
+                width = this.viewRect.width || 0;
+                width += this.wrapPadding[1];
+                width += this.wrapPadding[3];
+
+                const min = this.minWidth, max = this.maxWidth;
+                width = clamp(width, min || 0, max || Infinity);
+                width += 'px';
+                style.width = width;
+            }
+
             if (typeof this.height === 'number') {
                 style.height = `${this.height}px`;
             } else if (this.height === 'auto') {
                 const min = this.minHeight, max = this.maxHeight, h = this.viewRect.height || 0;
-                if (min && max) {
-                    style.height = clamp(h, min, max);
-                } else if (min && !max) {
-                    style.height = Math.max(h, min);
-                } else if (!min && max) {
-                    style.height = Math.min(h, max);
-                } else {
-                    style.height = h;
-                }
+                style.height = clamp(h, min || 0, max || Infinity);
                 style.height += this.wrapPadding[0];
                 style.height += this.wrapPadding[2];
                 style.height += 'px';
@@ -206,8 +223,8 @@ export default {
         },
         calcOuterWrapStyle() {
             return {
-                width: this.elRect.width + 'px',
-                height: '100%'
+                width: '100%',
+                height: '100%',//el height 一定是个数值
             }
         },
         calcInnerWrapStyle() {
@@ -220,7 +237,6 @@ export default {
         },
         calcViewStyle() {
             return {
-                width: this.inheritWidth ? this.wrapRect.width + 'px' : null,
                 ...(this.viewStyle || {}),
                 margin: 0,
             };
@@ -269,7 +285,6 @@ export default {
 
 <style lang="less">
 .custom-scrollbar {
-    width: 100%;
     position: relative;
     overflow: hidden;
 

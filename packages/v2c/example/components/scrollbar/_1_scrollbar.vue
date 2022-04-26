@@ -13,7 +13,8 @@
         <p class="tip">
             适应内容宽高
         </p>
-        <custom-scrollbar :max-height="200" :min-height="100" height="auto" :inherit-width="inhertWidth">
+        <custom-scrollbar :max-height="200" :max-width="300" :min-width="100"
+                          :min-height="100" height="auto" :inherit-width="inhertWidth">
             <div style="background-color: #409eff;width: 100%;overflow:hidden;" :style="{height:height1+'px'}">
                 <p>min(100)-max(200)</p>
                 <div>height:{{height1}}</div>
