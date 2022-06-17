@@ -13,14 +13,14 @@
         <p class="tip">
             适应内容宽高
         </p>
-        <custom-scrollbar :max-height="200" :max-width="300" :min-width="100"
-                          :min-height="100" height="auto" :inherit-width="inhertWidth">
-            <div style="background-color: #409eff;width: 100%;overflow:hidden;" :style="{height:height1+'px'}">
+        <custom-scrollbar :inherit-width="inhertWidth" :max-height="200" :max-width="300"
+                          :min-height="100" :min-width="100" height="auto">
+            <div :style="{height:height1+'px'}" style="background-color: #409eff;width: 100%;overflow:hidden;">
                 <p>min(100)-max(200)</p>
-                <div>height:{{height1}}</div>
+                <div>height:{{ height1 }}</div>
                 <div @click="height1++">+</div>
                 <div @click="height1--">-</div>
-                <div @click="inhertWidth = !inhertWidth">inhertWidth:{{inhertWidth}}</div>
+                <div @click="inhertWidth = !inhertWidth">inhertWidth:{{ inhertWidth }}</div>
             </div>
         </custom-scrollbar>
         <p class="tip">
@@ -28,9 +28,9 @@
         </p>
         <div style="height: 200px;width:1000px;background-color: #9a6e3a">
             <custom-scrollbar>
-                <div style="background-color: #0E9A00" :style="{height:height2+'px'}">
+                <div :style="{height:height2+'px'}" style="background-color: #0E9A00">
                     <div>容器固定200px</div>
-                    <div>height:{{height2}}</div>
+                    <div>height:{{ height2 }}</div>
                     <div @click="height2++">+</div>
                     <div @click="height2--">-</div>
                 </div>
@@ -41,27 +41,15 @@
 </template>
 
 <script>
-import {vLoading} from "../../../src/directives/v-loading";
-import EmptySlot from "../../../src/packages/empty-slot";
-import CollapsePanel from "../../../src/packages/collapse-panel";
-import CustomImage from "../../../src/packages/custom-image";
-import {vClickOutside} from "../../../src/directives/v-click-outside";
-import {vResize} from "../../../src/directives/v-resize";
 
 export default {
     name: "scrollbar",
-    components: {CustomImage, CollapsePanel, EmptySlot},
-    directives:{
-        loading:vLoading,
-        clickOutside: vClickOutside,
-        resize:vResize
-    },
-    data(){
+    data() {
         return {
-            height1:150,
-            height2:100,
-            inhertWidth:false,
-            src:'https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg'
+            height1: 150,
+            height2: 100,
+            inhertWidth: false,
+            src: 'https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg'
         }
     },
 }

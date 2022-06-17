@@ -289,11 +289,9 @@ export default {
     position: relative;
     overflow: hidden;
 
-    &:hover {
-        & > .scrollbar__bar {
-            opacity: 1;
-            transition: opacity 340ms ease-out;
-        }
+    &:hover > .scrollbar__bar {
+        opacity: 1;
+        transition: opacity 340ms ease-out;
     }
 
     .scrollbar__view {
@@ -304,7 +302,7 @@ export default {
         padding: 0;
     }
 
-    .scrollbar-bar {
+    & > .scrollbar-bar {
         overflow: hidden;
         position: absolute;
         z-index: 1;
@@ -315,7 +313,6 @@ export default {
 
         &.is-active {
             opacity: 1;
-            background-color: rgba(61, 56, 56, 0.3);
         }
 
         &.is-vertical {
@@ -350,7 +347,6 @@ export default {
         height: 0;
         cursor: pointer;
         border-radius: inherit;
-        background-color: #30688b;
         transition: .3s background-color;
     }
 }

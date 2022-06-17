@@ -16,7 +16,6 @@
 </template>
 
 <script type="text/jsx">
-import {vTransferDom} from "../../../src/directives/v-transfer-dom";
 
 const code = `
     <template>
@@ -53,9 +52,6 @@ const code = `
     <\/scipt>
 `
 export default {
-    directives: {
-        transferDom: vTransferDom
-    },
     data() {
         return {
             target: null,

@@ -58,9 +58,10 @@
             <bar :class="{'is-active':showY,'table-scrollbar':true}"
                  :data="dataY" ref="barY" vertical
                  :style="_calcBarStyle('y')"/>
-            <empty-slot v-show="empty" :style="_calcEmptyStyle()" style="z-index: 4">
+            <div class="empty__wrapper"
+                 v-show="empty" :style="_calcEmptyStyle()">
                 <slot name="empty"/>
-            </empty-slot>
+            </div>
             <div v-if="isDragCol" class="drag-line" style="z-index: 5"
                  :style="{top:dragLineTop+'px',left:dragLineLeft+'px'}"/>
         </div>
@@ -70,7 +71,6 @@
 <script type="text/babel">
 import {clamp, isIE} from "@well24/utils";
 import {TableEvent} from "./table-config";
-import EmptySlot from '@src/packages/empty-slot';
 import store from './store';
 import TableHeader from './table-header';
 import TableBody from './table-body';
@@ -248,7 +248,7 @@ export default {
         },
     },
     components: {
-        EmptySlot, TableHeader, TableBody, TableFooter, Bar
+        TableHeader, TableBody, TableFooter, Bar
     },
     data() {
         this.store = new store();
@@ -507,6 +507,7 @@ export default {
                 right: 0,
                 height: 'auto',
                 width: 'auto',
+                zIndex: 4,
             }
         },
         /// layout and event
@@ -894,5 +895,5 @@ export default {
 </script>
 
 <style lang="less">
-@import './table.less';
+@import './skeleton.less';
 </style>

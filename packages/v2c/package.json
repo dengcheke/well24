@@ -5,8 +5,9 @@
     "scripts": {
         "clean": "rimraf ./node_modules && rimraf ./dist",
         "dev": "webpack-dev-server --config ./webpack.dev.js",
-        "build": "rimraf ./dist && webpack --config ./webpack.build.js && npm run copy",
-        "copy": "ncp ./src/assets ./dist/style"
+        "build": "rimraf ./dist && webpack --config ./webpack.build.js && npm run copy && npm run build-css",
+        "copy": "ncp ./src/assets ./dist/style",
+        "build-css": "node ./gulpfile.js"
     },
     "keywords": [],
     "license": "MIT",
@@ -26,11 +27,16 @@
     "devDependencies": {
         "css-loader": "^5.0.0",
         "file-loader": "^6.2.0",
+        "gulp": "^4.0.2",
+        "gulp-autoprefixer": "^8.0.0",
+        "gulp-less": "^5.0.0",
+        "gulp-minify-css": "^1.2.4",
         "highlight.js": "^9.0.0",
         "html-webpack-plugin": "^4.5.0",
         "intersection-observer": "^0.12.0",
         "less": "^3.12.2",
         "less-loader": "^7.0.2",
+        "less-plugin-autoprefix": "^2.0.0",
         "normalize-wheel": "^1.0.1",
         "style-loader": "^2.0.0",
         "url-loader": "^4.1.1",

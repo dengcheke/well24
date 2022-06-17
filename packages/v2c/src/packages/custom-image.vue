@@ -106,11 +106,6 @@ export default {
 .custom-img {
     display: inline-block;
     vertical-align: bottom;
-    background-color: white;
-
-    &.is-loaded {
-        background-color: transparent;
-    }
 
     .img__loading-wrapper,
     .img__error-wrapper,
@@ -130,13 +125,11 @@ export default {
     .icon-w24-img-err {
         display: block;
         font-size: 24px;
-        color: black;
     }
 
     .icon-w24-loading {
         display: block;
         font-size: 24px;
-        color: #1e90ff;
         animation: loading-rotate 2s linear infinite;
         @keyframes loading-rotate {
             0% {
@@ -153,7 +146,6 @@ export default {
     }
 
     .error-msg {
-        color: black;
         margin-left: 10px;
     }
 }

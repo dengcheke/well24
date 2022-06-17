@@ -22,8 +22,7 @@ export default {
             directives: [{name: 'show', value: this.show}],
         }}>
             <div class={["loading-box",this.boxClass]}>{[
-                <i class="icon-w24 icon-w24-loading"/>,
-                content
+                content || <i class="icon-w24 icon-w24-loading"/>,
             ].filter(Boolean)}
             </div>
         </div>
@@ -42,7 +41,6 @@ export default {
     top: 0;
     bottom: 0;
     right: 0;
-    background-color: rgba(0, 0, 0, 0.5);
 
     .loading-box {
         position: absolute;
@@ -53,7 +51,6 @@ export default {
         .icon-w24-loading {
             display: inline-block;
             font-size: 24px;
-            color: white;
             transform-origin: center;
             animation: loading-rotate 2s linear infinite;
             @keyframes loading-rotate {

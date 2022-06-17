@@ -18,7 +18,6 @@
 </template>
 
 <script type="text/jsx">
-import {vResize} from "../../../src/directives/v-resize";
 
 const code = `
     <template>
@@ -35,9 +34,6 @@ const code = `
     <\/template>
 `
 export default {
-    directives: {
-        resize:vResize
-    },
     data() {
         return {
             code,

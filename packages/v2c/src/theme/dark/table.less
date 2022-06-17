@@ -1,0 +1,139 @@
+.custom-table {
+  color: white;
+
+  /*table*/
+
+  .table__header-wrapper {
+    background-color: rgb(20, 78, 116);
+  }
+
+  .table__header {
+    color: #69d6f1;
+  }
+
+  .table__body {
+    color: white;
+
+    tr.row {
+      transition: 0.1s background-color;
+      background-color: #002534;
+
+      &.is-hover,
+      &.current-row {
+        background-color: #133e58;
+      }
+    }
+  }
+
+  .table__footer-wrapper {
+    background-color: #002534;
+  }
+
+  .table__fixed--left.fixed-shadow {
+    box-shadow: 5px 0 10px -5px black;
+  }
+
+  .table__fixed--right.fixed-shadow {
+    box-shadow: -5px 0 10px -5px black;
+  }
+
+  /*checkbox*/
+  tr .cell-checkbox {
+    background-color: white;
+    //use for check
+    &:before {
+      border: 1px solid #fff;
+    }
+
+    //use for indeterminate
+    &:after {
+      background-color: #fff;
+    }
+  }
+
+  tr.is-checked {
+    .cell-checkbox {
+      background-color: #409eff;
+    }
+  }
+
+  tr.is-indeterminate {
+    .cell-checkbox {
+      background-color: #409eff;
+    }
+  }
+
+
+  /*sort*/
+
+  .sort-caret-wrapper {
+    .sort-caret {
+      width: 0;
+      height: 0;
+      border: 5px solid transparent;
+      position: absolute;
+      transition: 0.1s border-color;
+      transform: scale(1.05);
+
+      &.asc {
+        border-bottom-color: #c0c4cc;
+        &.is-active {
+          border-bottom-color: #409eff;
+        }
+      }
+
+      &.desc {
+        border-top-color: #c0c4cc;
+        &.is-active {
+          border-top-color: #409eff;
+        }
+      }
+    }
+  }
+
+  /*scrollbar*/
+
+  .table-scrollbar {
+    &.is-active {
+      background-color: rgba(61, 56, 56, 0.3);
+    }
+  }
+
+  .scrollbar-thumb {
+    background-color: #30688b;
+  }
+
+  /*empty*/
+  .empty-slot {
+    background-color: #002534;
+  }
+
+  /*drag-line*/
+  .drag-line {
+    background-color: white;
+  }
+
+
+  /*border-color*/
+  @borderStyle: 1px solid cyan;
+
+  .table__header td {
+    border-bottom: @borderStyle;
+    border-right: @borderStyle;
+  }
+
+  .table__body, .table__footer {
+    tr:not(:last-child) td {
+      border-bottom: @borderStyle;
+    }
+
+    td:not(:last-child) {
+      border-right: @borderStyle;
+    }
+  }
+
+  .table__footer tr:first-child td {
+    border-top: @borderStyle
+  }
+
+}

@@ -58,7 +58,6 @@ export default {
 
     .collapse-panel__title {
         padding: 0 5px;
-        background-color: rgba(13, 67, 91, 1);
         font-size: 15px;
         font-weight: 700;
         display: flex;
@@ -73,9 +72,7 @@ export default {
         margin-left: auto;
         transition: transform 0.5s ease-in-out;
         transform: rotate(-180deg);
-        color: yellow;
         font-weight: 500;
-        text-shadow: 0 0 5px yellow;
         &.is-collapse{
             transform: rotate(0);
         }

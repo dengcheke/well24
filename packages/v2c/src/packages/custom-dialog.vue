@@ -492,7 +492,6 @@ export default {
     bottom: 0;
 
     &.has-shadow {
-        background-color: rgba(0, 0, 0, .4);
         pointer-events: auto;
     }
 
@@ -500,8 +499,6 @@ export default {
         backface-visibility: hidden;
         pointer-events: auto;
         position: absolute;
-        background-color: rgba(2, 34, 51, 0.8);
-        box-shadow: 2px 2px 10px 0 black;
 
         &.full-screen {
             left: 0 !important;
@@ -515,7 +512,6 @@ export default {
 
         .icon-w24-resize-br {
             position: absolute;
-            color: white;
             z-index: 1;
             right: 0;
             bottom: 0;

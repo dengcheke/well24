@@ -18,7 +18,6 @@
 </template>
 
 <script type="text/jsx">
-import {vLoading} from "../../../src/directives/v-loading";
 const code = `
     <template>
         <div @click="loading=!loading">切换loading</div>
@@ -48,9 +47,6 @@ const code = `
     <\/script>
 `
 export default {
-    directives: {
-        loading: vLoading,
-    },
     data() {
         return {
             code,
