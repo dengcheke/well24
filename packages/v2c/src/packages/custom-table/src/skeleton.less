@@ -90,6 +90,7 @@
     overflow: hidden;
     cursor: pointer;
     position: relative;
+    background-color: white;
     z-index: 0; //fixed bug: before 和 after z-index穿透了上层的div并显示
     //use for check
     &:before {
@@ -101,11 +102,11 @@
       left: 4px;
       top: 2px;
       z-index: 1;
-      border-left: 0;
-      border-top: 0;
       transition: transform 0.25s;
       transform: rotate(45deg) scaleY(0);
       transform-origin: center;
+      border-right: 1px solid #fff;
+      border-bottom: 1px solid #fff;
     }
 
     //use for indeterminate
@@ -119,10 +120,14 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
+      background-color: #fff;
     }
   }
 
   tr.is-checked {
+    .cell-checkbox {
+      background-color: #409eff;
+    }
     .cell-checkbox:before {
       transform: rotate(45deg) scaleY(1);
     }
@@ -132,6 +137,9 @@
   }
 
   tr.is-indeterminate {
+    .cell-checkbox {
+      background-color: #409eff;
+    }
     .cell-checkbox:before {
       display: none;
     }
@@ -163,7 +171,6 @@
   }
 
   /*resize*/
-
   .resize-handle {
     position: absolute;
     width: 14px;
@@ -181,7 +188,6 @@
   }
 
   /*sort*/
-
   .sort-caret-wrapper {
     display: inline-flex;
     margin-left: 5px;
@@ -203,16 +209,23 @@
 
       &.asc {
         top: 4px;
+        border-bottom-color: #c0c4cc;
+        &.is-active {
+          border-bottom-color: #409eff;
+        }
       }
 
       &.desc {
         bottom: 4px;
+        border-top-color: #c0c4cc;
+        &.is-active {
+          border-top-color: #409eff;
+        }
       }
     }
   }
 
   /*scrollbar*/
-
   &:hover {
     & > .table-scrollbar {
       opacity: 1;

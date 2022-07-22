@@ -37,62 +37,8 @@
     box-shadow: -5px 0 10px -5px black;
   }
 
-  /*checkbox*/
-  tr .cell-checkbox {
-    background-color: white;
-    //use for check
-    &:before {
-      border: 1px solid #fff;
-    }
-
-    //use for indeterminate
-    &:after {
-      background-color: #fff;
-    }
-  }
-
-  tr.is-checked {
-    .cell-checkbox {
-      background-color: #409eff;
-    }
-  }
-
-  tr.is-indeterminate {
-    .cell-checkbox {
-      background-color: #409eff;
-    }
-  }
-
-
-  /*sort*/
-
-  .sort-caret-wrapper {
-    .sort-caret {
-      width: 0;
-      height: 0;
-      border: 5px solid transparent;
-      position: absolute;
-      transition: 0.1s border-color;
-      transform: scale(1.05);
-
-      &.asc {
-        border-bottom-color: #c0c4cc;
-        &.is-active {
-          border-bottom-color: #409eff;
-        }
-      }
-
-      &.desc {
-        border-top-color: #c0c4cc;
-        &.is-active {
-          border-top-color: #409eff;
-        }
-      }
-    }
-  }
 
   /*scrollbar*/
-
   .table-scrollbar {
     &.is-active {
       background-color: rgba(61, 56, 56, 0.3);
