@@ -11,8 +11,13 @@ Vue.component('highlightjs', Hightlightjs);
 import '../dist/style/icon/iconfont.css'
 import '../dist/style/theme/dark/index.css'
 const ctx = require.context('../dist/lib', false, /\.js$/);
-ctx.keys().forEach(key => Vue.use(ctx(key).default));
+ctx.keys().forEach(key => {
+    //if(key.indexOf('custom-table') !== -1) return;
+    Vue.use(ctx(key).default)
+});
 
+/*import CustomTable from '../src/packages/custom-table/index';
+Vue.use(CustomTable);*/
 import {vTransferDom} from "../dist/directives/v-transfer-dom";
 import {vResize} from "../dist/directives/v-resize";
 import {vLoading} from "../dist/directives/v-loading";

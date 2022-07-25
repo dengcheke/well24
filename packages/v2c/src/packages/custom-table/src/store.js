@@ -357,6 +357,7 @@ const TableStore = Vue.extend({
             moveItemNewHasInOld(this.flatDfsData, oldChecks, newChecks);
             this.checkNums = newChecks.size;
             oldChecks.size && this.table.dispatchEvent(TableEvent.CheckChange, newChecks);
+            this.checkTrigger++;
         },
         updateExpand() {
             const oldExpandRows = this.expandedSet;

@@ -16,7 +16,7 @@ module.exports = {
             '@src': path.resolve(__dirname, './src'),
         }
     },
-    devtool: 'source-map',
+    devtool: 'cheap-source-map',
     module: {
         rules: [
             {

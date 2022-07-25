@@ -301,9 +301,8 @@ export default {
                         removeClass(tr, ['is-checked', 'is-indeterminate']);
                     }
                 })
-
             }
-        }
+        },
     }
 }
 </script>
