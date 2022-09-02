@@ -344,26 +344,24 @@ const TableStore = Vue.extend({
         },
         //update state
         updateTreeExpand() {
-            const oldTreeExpands = this.treeExpandedSet;
+            //const oldTreeExpands = this.treeExpandedSet;
             const newTreeExpands = this.treeExpandedSet = new Set();
-            moveItemNewHasInOld(this.flatDfsData, oldTreeExpands, newTreeExpands);
-            //don't use trigger, tbody has watch renderTrigger to update row class,
-            //avoid trigger update twice
-            oldTreeExpands.size && this.table.dispatchEvent(TableEvent.TreeExpandChange, newTreeExpands);
+            //moveItemNewHasInOld(this.flatDfsData, oldTreeExpands, newTreeExpands);
+            //oldTreeExpands.size && this.table.dispatchEvent(TableEvent.TreeExpandChange, newTreeExpands);
         },
         updateCheck() {
-            const oldChecks = this.checkedSet;
+            //const oldChecks = this.checkedSet;
             let newChecks = this.checkedSet = new Set();
-            moveItemNewHasInOld(this.flatDfsData, oldChecks, newChecks);
+            //moveItemNewHasInOld(this.flatDfsData, oldChecks, newChecks);
             this.checkNums = newChecks.size;
-            oldChecks.size && this.table.dispatchEvent(TableEvent.CheckChange, newChecks);
-            this.checkTrigger++;
+            //oldChecks.size && this.table.dispatchEvent(TableEvent.CheckChange, newChecks);
+            //this.checkTrigger++;
         },
         updateExpand() {
-            const oldExpandRows = this.expandedSet;
+            //const oldExpandRows = this.expandedSet;
             let newExpandRows = this.expandedSet = new Set();
-            moveItemNewHasInOld(this.flatDfsData, oldExpandRows, newExpandRows);
-            oldExpandRows.size && this.table.dispatchEvent(TableEvent.ExpandChange, newExpandRows);
+            //moveItemNewHasInOld(this.flatDfsData, oldExpandRows, newExpandRows);
+            //oldExpandRows.size && this.table.dispatchEvent(TableEvent.ExpandChange, newExpandRows);
         },
         //update renderList
         updateRenderList() {

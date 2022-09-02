@@ -704,6 +704,9 @@ export default {
             store.checkedSet = check ? new Set(store.flatDfsData) : new Set();
             store.checkNums = check ? store.flatDfsData.length : 0;
             store.checkTrigger++;
+            Array.from(store.checkedSet).forEach((item)=>{
+                this.dispatchEvent(TableEvent.RowCheck, item, check, store.checkedSet);
+            })
         },
 
         //展开节点, 影响渲染列表
